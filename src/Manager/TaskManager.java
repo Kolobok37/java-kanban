@@ -1,4 +1,6 @@
-import java.sql.SQLOutput;
+package Manager;
+
+import Tasks.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,10 +14,6 @@ public class TaskManager {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public ArrayList<Task> getAllTasks() {
         ArrayList<Task> allTask = new ArrayList<>();
         for (Task task : taskList.values()) {
@@ -24,7 +22,7 @@ public class TaskManager {
         for (Epic epic : epicList.values()) {
             allTask.add(epic);
             if (!epic.getSubtasks().isEmpty()) {
-                for (int subtaskId : epic.getSubtasks()) {
+                for (int subtaskId : epic.getSubtasksId()) {
                     allTask.add(subtaskList.get(subtaskId));
                 }
             }
@@ -66,7 +64,8 @@ public class TaskManager {
     public void setSubtask(Task newTask, int epicId) {
         Subtask newSubtask = new Subtask(newTask.getTitle(), newTask.getDescription(), id, epicId);
         subtaskList.put(id, newSubtask);
-        epicList.get(epicId).addSubtask(id);
+        epicList.get(epicId).addSubtaskId(id);
+        epicList.get(epicId).addSubtask(newSubtask);
         id++;
         if(epicList.get(epicId).getStatus().equals("DONE")) {
             epicList.get(epicId).setStatus("IN_PROGRESS");
@@ -105,43 +104,8 @@ public class TaskManager {
         Subtask newSubtask = new Subtask(updatedSubtask.getTitle(), updatedSubtask.getDescription(), updatedSubtask.getId(),
                 epicId);
         newSubtask.setStatus(updatedSubtask.getStatus());
-
+        epicList.get(epicId).setStatus(newSubtask.getStatus());
         subtaskList.put(newSubtask.getId(), newSubtask);
-        switch (newSubtask.getStatus()){
-            case "NEW":
-                if(epicList.get(epicId).getStatus().equals("NEW")){
-                    break;
-                }
-                else{
-                    epicList.get(epicId).setStatus("IN_PROGRESS");
-                }
-                break;
-            case "DONE":
-                if(epicList.get(epicId).getStatus().equals("DONE")){
-                    break;
-                }
-                else{
-                    for(int i = 0; i<epicList.get(epicId).getSubtasks().size(); i++){
-                        if(subtaskList.get(epicList.get(epicId).getSubtasks().get(i)).getStatus().equals("DONE")){
-                            epicList.get(epicId).setStatus("DONE");
-                        }
-                        else {
-                            epicList.get(epicId).setStatus("IN_PROGRESS");
-                            break;
-                        }
-                    }
-                }
-                break;
-            case "IN_PROGRESS":
-                epicList.get(epicId).setStatus("IN_PROGRESS");
+        epicList.get(epicId).addSubtask(newSubtask);
         }
-        }
-
-    public ArrayList<Subtask> getSubtaskOfEpic(int idEpic) {
-        ArrayList<Subtask> listSubtask = new ArrayList<>();
-        for(Integer i:epicList.get(idEpic).getSubtasks()){
-            listSubtask.add(subtaskList.get(i));
-        }
-        return listSubtask;
-    }
 }

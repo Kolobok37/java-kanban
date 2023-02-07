@@ -1,6 +1,6 @@
-import java.util.ArrayList;
+package Tasks;
 
-public class Subtask extends Epic{
+public class Subtask extends Task{
     private int idEpic;
 
     public Subtask(String title, String description, int id, int idEpic) {
