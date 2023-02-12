@@ -4,7 +4,7 @@ public class Task {
     protected String title;
     protected String description;
     protected int id;
-    protected String status;
+    protected String status;    //Перечесление проодится в следующим спринте, не буду спешить
 
     public Task(String title, String description, int id) {
         this.title = title;
