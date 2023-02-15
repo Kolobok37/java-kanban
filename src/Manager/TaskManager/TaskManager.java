@@ -1,11 +1,14 @@
-package Manager;
+package Manager.TaskManager;
 
+import Manager.History.InMemoryHistoryManager;
 import Tasks.*;
 
 import java.util.ArrayList;
 
 public interface TaskManager {
     int getId();
+
+    InMemoryHistoryManager getHistoryMemory();
 
     ArrayList<Task> getAllTasks() ;
 

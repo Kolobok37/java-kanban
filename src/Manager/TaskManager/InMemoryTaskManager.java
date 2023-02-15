@@ -1,30 +1,31 @@
-package Manager;
+package Manager.TaskManager;
 
-import Manager.HistoryManager.InMemoryHistoryManager;
+import Manager.History.InMemoryHistoryManager;
 import Tasks.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class InMemoryTaskManager implements TaskManager{
-    HashMap<Integer, SingleTask> taskList ;
+public class InMemoryTaskManager implements TaskManager {
+    HashMap<Integer, SingleTask> taskList;
     HashMap<Integer, Epic> epicList;
     HashMap<Integer, Subtask> subtaskList;
+    InMemoryHistoryManager history;
+    int id;
+
+    public InMemoryTaskManager(InMemoryHistoryManager history) {
+        taskList = new HashMap<>();
+        epicList = new HashMap<>();
+        subtaskList = new HashMap<>();
+        this.history = history;
+        id = 1;
+    }
 
     public InMemoryHistoryManager getHistoryMemory() {
         return history;
     }
 
-    InMemoryHistoryManager history;
-
-    int id;
-    InMemoryTaskManager(InMemoryHistoryManager history){
-        taskList = new HashMap<>();
-        epicList = new HashMap<>();
-        subtaskList = new HashMap<>();
-        this.history=history;
-        id=1;
-    }
-@Override
+    @Override
     public int getId() {
         return id;
     }
@@ -56,17 +57,14 @@ public class InMemoryTaskManager implements TaskManager{
     @Override
     public Task getTask(int id) {
         if (taskList.containsKey(id)) {
-            taskList.get(id).toString();
             history.addTaskInHistory(taskList.get(id));
             return taskList.get(id);
         }
         if (epicList.containsKey(id)) {
-            epicList.get(id).toString();
             history.addTaskInHistory(epicList.get(id));
             return epicList.get(id);
         }
         if (subtaskList.containsKey(id)) {
-            subtaskList.get(id).toString();
             history.addTaskInHistory(subtaskList.get(id));
             return subtaskList.get(id);
         }
@@ -100,7 +98,7 @@ public class InMemoryTaskManager implements TaskManager{
             return true;
         }
         if (epicList.containsKey(id)) {
-            for(int subtaskId: epicList.get(id).getSubtasks().keySet()){
+            for (int subtaskId : epicList.get(id).getSubtasks().keySet()) {
                 subtaskList.remove(subtaskId);
             }
             epicList.remove(id);

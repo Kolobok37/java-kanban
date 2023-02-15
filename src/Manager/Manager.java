@@ -1,7 +1,8 @@
 package Manager;
-import Manager.HistoryManager.*;
+import Manager.History.*;
+import Manager.TaskManager.InMemoryTaskManager;
 
-public abstract class Manager {
+public class Manager {
     public static InMemoryTaskManager getTaskManager() {
         return new InMemoryTaskManager(getDefaultHistory());
     }
