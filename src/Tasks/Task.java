@@ -1,51 +1,23 @@
 package Tasks;
 
-public class Task {
-    protected String title;
-    protected String description;
-    protected int id;
-    protected String status;    //Перечесление проодится в следующим спринте, не буду спешить
-
+public abstract class Task {
     public Task(String title, String description, int id) {
         this.title = title;
         this.description = description;
         this.id = id;
-        status = "NEW";
     }
+     String title;
+     String description;
+     int id;
 
-    @Override
-    public String toString() {
-        return "Task " +
-                "id=" + id +
-                ": title= '" + title + '\'' +
-                ", status= '" + status + '\'';
-    }
+    abstract public String getTitle();
 
-    public String getTitle() {
-        return title;
-    }
+    abstract public void setTitle(String title);
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    abstract public String getDescription();
 
-    public String getDescription() {
-        return description;
-    }
+    abstract public void setDescription(String description);
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    abstract public int getId();
 
-    public int getId() {
-        return id;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }

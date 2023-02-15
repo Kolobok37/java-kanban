@@ -1,16 +1,17 @@
 package Main;
 
-import Manager.TaskManager;
+import Manager.InMemoryTaskManager;
+import Manager.Manager;
 import Tasks.*;
 public class Main {
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        InMemoryTaskManager manager =Manager.getTaskManager();
 
-        Task testTask1=new Task("Мыть пол", "Помыть до 21:00", manager.getId());
-        manager.setTask(testTask1);
+        SingleTask testSingleTask1 =new SingleTask("Мыть пол", "Помыть до 21:00", manager.getId());
+        manager.setSingleTask(testSingleTask1);
 
-        Task testTask2=new Task("Мыть ванну", "Помыть до 22:00", manager.getId());
-        manager.setTask(testTask2);
+        SingleTask testSingleTask2 =new SingleTask("Мыть ванну", "Помыть до 22:00", manager.getId());
+        manager.setSingleTask(testSingleTask2);
 
         Epic testEpic1 = new Epic("Сделать ремонт", "В квартире",manager.getId());
         manager.setEpic(testEpic1);
@@ -31,16 +32,19 @@ public class Main {
         manager.setSubtask(testSubtask3);
 
         System.out.println(manager.getAllTasks());
-        testSubtask1.setStatus("DONE");
+        testSubtask1.setStatus(TaskStatus.DONE);
         manager.updateSubtask(testSubtask1);
-        testSubtask2.setStatus("DONE");
-        System.out.println(manager.getAllTasks());
+        testSubtask2.setStatus(TaskStatus.DONE);
         manager.updateSubtask(testSubtask2);
-        testTask1.setStatus("DONE");
-        manager.updateTask(testTask1);
+        testSingleTask1.setStatus(TaskStatus.DONE);
+        manager.updateSingleTask(testSingleTask1);
         System.out.println(manager.getAllTasks());
         manager.removeTask(1);
-        manager.removeTask(3);
+        manager.removeTask(7);
         System.out.println(manager.getAllTasks());
+        manager.getTask(2);
+        manager.getTask(5);
+        manager.getTask(6);
+        System.out.println(manager.getHistoryMemory().getHistory());
     }
 }
