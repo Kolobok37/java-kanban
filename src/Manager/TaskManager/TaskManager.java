@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public interface TaskManager {
     int getId();
 
-    InMemoryHistoryManager getHistoryMemory();
+    ArrayList<Task> getHistoryMemory();
 
     ArrayList<Task> getAllTasks() ;
 

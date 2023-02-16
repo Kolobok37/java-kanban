@@ -45,6 +45,6 @@ public class Main {
         manager.getTask(2);
         manager.getTask(5);
         manager.getTask(6);
-        System.out.println(manager.getHistoryMemory().getHistory());
+        System.out.println(manager.getHistoryMemory());
     }
 }

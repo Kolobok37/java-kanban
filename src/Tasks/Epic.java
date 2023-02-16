@@ -3,8 +3,8 @@ package Tasks;
 import java.util.HashMap;
 
 
-public class Epic extends Task{
-    TaskStatus status;
+public class Epic extends Task {
+    private TaskStatus status;
     private HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
     public Epic(String title, String description, int id) {
@@ -15,31 +15,25 @@ public class Epic extends Task{
     public String getTitle() {
         return title;
     }
-    @Override
 
+    @Override
     public void setTitle(String title) {
         this.title = title;
     }
-    @Override
 
+    @Override
     public String getDescription() {
         return description;
     }
+
     @Override
     public void setDescription(String description) {
         this.description = description;
     }
+
     @Override
     public int getId() {
         return id;
-    }
-    @Override
-    public String toString() {
-        return "Epic " +
-                "id = " + super.id +
-                ": title= '" + super.title + "'" +
-                ", status= '" + status + '\'' +
-                ", subtask: " + subtasks.size();
     }
 
     public void removeSubtask(Subtask newSubtask) {
@@ -54,38 +48,10 @@ public class Epic extends Task{
         return subtasks;
     }
 
-
-    /*public void setStatus(String statusSubtask) {
-        switch (statusSubtask) {
-            case "NEW":
-                if (!status.equals("NEW")) {
-                    status = "IN_PROGRESS";
-                } else {
-                    status = "NEW";
-                }
-                break;
-            case "DONE":    // При значении субтаска DONE, если епик не завершён, то проверяем по условиям, если завершён то ничего не делаем.
-                if (!status.equals("DONE")) {
-                    for (Subtask subtask : subtasks.values()) {
-                        if (subtask.getStatus().equals("DONE")) {
-                            status = "DONE";
-                        } else {
-                            status = "IN_PROGRESS";
-                            break;
-                        }
-                    }
-
-                }
-                break;
-            case "IN_PROGRESS":
-                status = "IN_PROGRESS";
-                break;
-        }
-    }
-*/
     public TaskStatus getStatus() {
         return status;
     }
+
     public void setStatus() {
         int newTracker = 0;
         int doneTracker = 0;
@@ -106,8 +72,7 @@ public class Epic extends Task{
             status = TaskStatus.NEW;
         } else if (doneTracker == subtasks.size()) {
             status = TaskStatus.DONE;
-        }
-        else {
+        } else {
             status = TaskStatus.IN_PROGRESS;
         }
     }
