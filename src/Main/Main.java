@@ -38,13 +38,17 @@ public class Main {
         manager.updateSubtask(testSubtask2);
         testSingleTask1.setStatus(TaskStatus.DONE);
         manager.updateSingleTask(testSingleTask1);
-        System.out.println(manager.getAllTasks());
         manager.removeTask(1);
         manager.removeTask(7);
         System.out.println(manager.getAllTasks());
         manager.getTask(2);
         manager.getTask(5);
         manager.getTask(6);
+        manager.getTask(1);
+        manager.getTask(2);
+        manager.getTask(6);
+        manager.getTask(5);
+        manager.removeTask(1);
         System.out.println(manager.getHistoryMemory());
     }
 }

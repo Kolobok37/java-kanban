@@ -4,11 +4,13 @@ import Manager.History.InMemoryHistoryManager;
 import Tasks.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public interface TaskManager {
     int getId();
 
-    ArrayList<Task> getHistoryMemory();
+    LinkedList<Task> getHistoryMemory();
 
     ArrayList<Task> getAllTasks() ;
 
