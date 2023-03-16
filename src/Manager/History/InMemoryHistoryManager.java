@@ -12,70 +12,66 @@ public class InMemoryHistoryManager implements HistoryManager {
     HashMap<Integer, Node> nodeHashMap = new HashMap<>();
     private Node<Task> head;
     private Node<Task> tail;
-    private int size = 0;
 
     @Override
-    public void addTaskInHistory(Task newTask) {
+    public void add(Task newTask) {
         Node newNode = new Node(newTask);
         if (nodeHashMap.containsKey(newTask.getId())) {
             remove(newTask.getId());
         }
         nodeHashMap.put(newTask.getId(), newNode);
-        if (tail == null) {
+        if (head == null) {
+            head = newNode;
             tail = newNode;
-            head = newNode;
         } else {
-            newNode.previous = head;
-            head.next = newNode;
-            head = newNode;
+            newNode.previous = tail;
+            tail.next = newNode;
+            tail = newNode;
         }
-        size++;
     }
 
     @Override
     public LinkedList<Task> getHistory() {
         LinkedList<Task> tasks = new LinkedList<>();
         Node nodeAdded;
-        if (!nodeHashMap.isEmpty()){
-            nodeAdded=tail;
-            while(true){
+        if (!nodeHashMap.isEmpty()) {
+            nodeAdded = tail;
+            while (nodeAdded!= null) {
                 tasks.add(nodeAdded.getTask());
-                if(nodeAdded.next==null){
-                    break;
-                }
-                nodeAdded = nodeAdded.next;
+                nodeAdded = nodeAdded.previous;
             }
         }
-
         return tasks;
     }
 
     @Override
-    public void remove(int id) {//
-        if (nodeHashMap.containsKey(id)) {
-            if (nodeHashMap.get(id).equals(head)) {
-                if (nodeHashMap.get(id).equals(tail)) {
-                    nodeHashMap.remove(id);
-                } else {
-                    head = nodeHashMap.get(id).previous;
-                    nodeHashMap.get(id).previous.next = null;
-                    nodeHashMap.remove(id);
-                }
-            } else if (nodeHashMap.get(id).equals(tail)) {
-                tail = nodeHashMap.get(id).next;
-                nodeHashMap.get(id).next.previous = null;
+    public void remove(int id) {
+            Node nodeRemoving= nodeHashMap.get(id);
+        if (!nodeHashMap.containsKey(id)) return;
+        if (nodeRemoving.equals(head)) {
+            if (nodeRemoving.equals(tail)) {
+                head=null;
+                tail=null;
                 nodeHashMap.remove(id);
             } else {
-                nodeHashMap.get(id).next.previous = nodeHashMap.get(id).previous;
-                nodeHashMap.get(id).previous.next = nodeHashMap.get(id).next;
+                head = nodeRemoving.next;
+                nodeRemoving.next.previous = null;
                 nodeHashMap.remove(id);
             }
+        } else if (nodeRemoving.equals(tail)) {
+            tail = nodeRemoving.previous;
+            nodeRemoving.previous.next = null;
+            nodeHashMap.remove(id);
+        } else {
+            nodeRemoving.next.previous = nodeRemoving.previous;
+            nodeRemoving.previous.next = nodeRemoving.next;
+            nodeHashMap.remove(id);
         }
     }
 
-    public void clear(){
+    public void clear() {
         head = null;
-        tail=null;
+        tail = null;
         nodeHashMap.clear();
     }
 }

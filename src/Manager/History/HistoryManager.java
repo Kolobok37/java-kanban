@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public interface HistoryManager {
-    void addTaskInHistory(Task newTask);
+    void add(Task newTask);
 
     LinkedList<Task> getHistory();
 
