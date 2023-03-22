@@ -22,12 +22,11 @@ public class InMemoryHistoryManager implements HistoryManager {
         nodeHashMap.put(newTask.getId(), newNode);
         if (head == null) {
             head = newNode;
-            tail = newNode;
         } else {
             newNode.previous = tail;
             tail.next = newNode;
-            tail = newNode;
         }
+        tail = newNode;
     }
 
     @Override
@@ -35,10 +34,10 @@ public class InMemoryHistoryManager implements HistoryManager {
         LinkedList<Task> tasks = new LinkedList<>();
         Node nodeAdded;
         if (!nodeHashMap.isEmpty()) {
-            nodeAdded = tail;
-            while (nodeAdded!= null) {
+            nodeAdded = head;
+            while (nodeAdded != null) {
                 tasks.add(nodeAdded.getTask());
-                nodeAdded = nodeAdded.previous;
+                nodeAdded = nodeAdded.next;
             }
         }
         return tasks;
@@ -46,27 +45,27 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void remove(int id) {
-            Node nodeRemoving= nodeHashMap.get(id);
-        if (!nodeHashMap.containsKey(id)) return;
+        Node nodeRemoving = nodeHashMap.get(id);
+        if (!nodeHashMap.containsKey(id)) {
+            return;
+        }
         if (nodeRemoving.equals(head)) {
             if (nodeRemoving.equals(tail)) {
-                head=null;
-                tail=null;
-                nodeHashMap.remove(id);
+                head = null;
+                tail = null;
             } else {
                 head = nodeRemoving.next;
                 nodeRemoving.next.previous = null;
-                nodeHashMap.remove(id);
             }
         } else if (nodeRemoving.equals(tail)) {
             tail = nodeRemoving.previous;
             nodeRemoving.previous.next = null;
-            nodeHashMap.remove(id);
         } else {
             nodeRemoving.next.previous = nodeRemoving.previous;
             nodeRemoving.previous.next = nodeRemoving.next;
-            nodeHashMap.remove(id);
         }
+        nodeHashMap.remove(id);
+
     }
 
     public void clear() {
