@@ -2,11 +2,8 @@ package Manager.History;
 
 import Tasks.Task;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-
 
 public class InMemoryHistoryManager implements HistoryManager {
     HashMap<Integer, Node> nodeHashMap = new HashMap<>();
@@ -65,7 +62,6 @@ public class InMemoryHistoryManager implements HistoryManager {
             nodeRemoving.previous.next = nodeRemoving.next;
         }
         nodeHashMap.remove(id);
-
     }
 
     public void clear() {

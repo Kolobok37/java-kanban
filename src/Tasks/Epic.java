@@ -4,11 +4,16 @@ import java.util.HashMap;
 
 
 public class Epic extends Task {
-    private TaskStatus status;
     private HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
     public Epic(String title, String description, int id) {
         super(title, description, id);
+        type = TaskType.Epic;
+    }
+
+    @Override
+    public String toString() {
+        return id+",Epic,"+title +","+status+","+description;
     }
 
     @Override
@@ -51,7 +56,9 @@ public class Epic extends Task {
     public TaskStatus getStatus() {
         return status;
     }
-
+public void loadStatus(TaskStatus status){
+        this.status=status;
+    }
     public void setStatus() {
         int newTracker = 0;
         int doneTracker = 0;

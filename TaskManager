@@ -1,0 +1,6 @@
+id,type,name,status,description,epic
+1,SingleTask,Мыть пол,NEW,Помыть до 21:00
+2,Epic,Сделать ремонт,NEW,В квартире
+3,Subtask,Составить список,NEW,Стройматериалы,2
+
+1

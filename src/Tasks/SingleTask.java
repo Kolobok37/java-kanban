@@ -1,19 +1,16 @@
 package Tasks;
 
 public class SingleTask extends Task{
-    private TaskStatus status;    //Перечесление проодится в следующим спринте, не буду спешить
-
     public SingleTask(String title, String description, int id) {
         super(title,description,id);
         status = TaskStatus.NEW;
+        type = TaskType.SingleTask;
     }
 
     @Override
     public String toString() {
-        return "Task " +
-                "id=" + id +
-                ": title= '" + title + '\'' +
-                ", status= '" + status + '\'';
+        return id+",SingleTask,"+title +","+status+","+description;
+
     }
     @Override
     public String getTitle() {

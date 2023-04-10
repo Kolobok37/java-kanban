@@ -1,10 +1,11 @@
 package Manager.TaskManager;
 
-import Manager.History.InMemoryHistoryManager;
-import Tasks.*;
+import Tasks.Epic;
+import Tasks.SingleTask;
+import Tasks.Subtask;
+import Tasks.Task;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 
 public interface TaskManager {
@@ -24,7 +25,7 @@ public interface TaskManager {
 
     void setSubtask(Subtask newSubtask) ;
 
-    boolean removeTask(int id) ;
+    void removeTask(int id) ;
 
     void updateSingleTask(SingleTask updatedSingleTask);
 

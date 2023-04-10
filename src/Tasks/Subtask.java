@@ -3,12 +3,11 @@ package Tasks;
 public class Subtask extends Task{
     private int idEpic;
 
-    private TaskStatus status;
-
     public Subtask(String title, String description, int id, int idEpic) {
         super(title, description, id);
         this.idEpic = idEpic;
         status=TaskStatus.NEW;
+        type = TaskType.Subtask;
     }
     @Override
     public String getTitle() {
@@ -34,10 +33,7 @@ public class Subtask extends Task{
     }
     @Override
     public String toString() {
-        return "Subtask" +
-                " id = " + id+
-                ", title= '" + super.title + "'" +
-                ", status= '" + status + "'";
+        return id+",Subtask,"+title +","+status+","+description+","+idEpic;
     }
 
     public TaskStatus getStatus() {

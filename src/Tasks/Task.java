@@ -6,9 +6,16 @@ public abstract class Task {
         this.description = description;
         this.id = id;
     }
-     String title;
-     String description;
-     int id;
+
+    protected String title;
+    protected String description;
+    protected int id;
+    protected TaskStatus status;
+    protected TaskType type;
+
+    public TaskType getType() {
+        return type;
+    }
 
     abstract public String getTitle();
 
