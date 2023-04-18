@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 public interface TaskManager {
-    int getId();
-
     LinkedList<Task> getHistoryMemory();
 
     ArrayList<Task> getAllTasks() ;

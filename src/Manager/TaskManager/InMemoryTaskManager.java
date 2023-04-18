@@ -26,8 +26,7 @@ public class InMemoryTaskManager implements TaskManager {
         return history.getHistory();
     }
 
-    @Override
-    public int getId() {
+     public int getId() {
         return id;
     }
 
@@ -119,8 +118,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic updatedEpic) {
-        Epic newEpic = new Epic(updatedEpic.getTitle(), updatedEpic.getDescription(), updatedEpic.getId());
-        epicList.put(newEpic.getId(), newEpic);
+        epicList.put(updatedEpic.getId(), updatedEpic);
     }
 
     @Override

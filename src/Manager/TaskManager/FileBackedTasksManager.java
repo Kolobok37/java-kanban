@@ -11,12 +11,15 @@ import java.util.List;
 
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
-    public FileBackedTasksManager(InMemoryHistoryManager history) {
+    File file;
+
+    public FileBackedTasksManager(InMemoryHistoryManager history, File file) {
         super(history);
+        this.file = file;
     }
-    public static void main(String[] args){
-        FileBackedTasksManager manager = Manager.getTaskManagerFile();
-        File file =new File("TaskManager");
+
+    public static void main(String[] args) {
+        FileBackedTasksManager manager = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
 
         SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.getId());
         manager.setSingleTask(testSingleTask1);
@@ -27,17 +30,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         manager.setSubtask(testSubtask1);
         manager.getTask(1);
 
-        FileBackedTasksManager manager2 = Manager.getTaskManagerFile();
-        manager2.loadFromFile(file);
+        FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
+        manager2.loadFromFile();
         System.out.println(manager2.getAllTasks());
         System.out.println(manager2.getHistoryMemory());
-    }
-
-
-    @Override
-    public void setEpic(Epic newEpic) {
-        super.setEpic(newEpic);
-        save();
     }
 
     @Override
@@ -46,6 +42,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         save();
         return task;
     }
+
+    @Override
+    public void setEpic(Epic newEpic) {    //Id Task присваевается в конструкторе и передаётся в метод уже с id,
+        super.setEpic(newEpic);            // на данный момент логика такая.
+        save();
+    }
+
 
     @Override
     public void setSingleTask(SingleTask newSingleTask) {
@@ -59,19 +62,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         save();
     }
 
-    public void loadSubtask(Subtask newSubtask) {
-        subtaskList.put(newSubtask.getId(), newSubtask);
-        epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
-        epicList.get(newSubtask.getIdEpic()).setStatus();
-    }
-
-    public void loadEpic(Epic newEpic) {
-        epicList.put(newEpic.getId(), newEpic);
-    }
-    public void loadSingleTask(SingleTask newSingleTask) {
-        taskList.put(newSingleTask.getId(), newSingleTask);
-    }
-
     @Override
     public void removeTask(int id) {
         super.removeTask(id);
@@ -79,7 +69,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     private void save() {
-        try (Writer writer = new FileWriter("TaskManager")) {
+        try (Writer writer = new FileWriter(file)) {
             List<Task> allTask = super.getAllTasks();
             writer.write("id,type,name,status,description,epic\n");
             for (Task task : allTask) {
@@ -95,30 +85,42 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    public void loadFromFile(File file) {
+    public void loadEpic(Epic newEpic) {
+        epicList.put(newEpic.getId(), newEpic);
+    }
+
+    public void loadSingleTask(SingleTask newSingleTask) {
+        taskList.put(newSingleTask.getId(), newSingleTask);
+    }
+
+    public void loadSubtask(Subtask newSubtask) {
+        subtaskList.put(newSubtask.getId(), newSubtask);
+        epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
+        epicList.get(newSubtask.getIdEpic()).setStatus();
+    }
+
+    public void loadFromFile() {
         try (BufferedReader buf = new BufferedReader(new FileReader(file))) {
             String line = buf.readLine();
             line = buf.readLine();
             while (!line.isEmpty()) {
                 Task task = fromString(line);
+                line = buf.readLine();
                 switch (task.getType()) {
                     case Epic: {
                         loadEpic(((Epic) task));
-                        line = buf.readLine();
                         break;
                     }
                     case SingleTask: {
                         loadSingleTask(((SingleTask) task));
-                        line = buf.readLine();
                         break;
                     }
                     case Subtask: {
                         loadSubtask(((Subtask) task));
-                        line = buf.readLine();
                         break;
                     }
                 }
-                }
+            }
             line = buf.readLine();
             if (!line.isEmpty()) {
                 List<Integer> history = historyFromString(line);
@@ -126,22 +128,23 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     getTask(i);
                 }
             }
-            } catch(IOException e){
-                try {
-                    throw new ManagerSaveException("Ошибка ввода вырисовывается(");
-                } catch (ManagerSaveException exp) {
-                    System.out.println(exp.getMessage());
-                }
+        } catch (IOException e) {
+            try {
+                throw new ManagerSaveException("Ошибка ввода вырисовывается(");
+            } catch (ManagerSaveException exp) {
+                System.out.println(exp.getMessage());
             }
         }
+    }
 
-        public Task fromString (String value){
-            String[] lineTask = value.split(",");
+    public Task fromString(String value) {
+        String[] lineTask = value.split(",");
+        try {
             String status = lineTask[3];
             TaskStatus statusEnum = TaskStatus.NEW;
-            for (TaskStatus a : TaskStatus.values()) {
-                if (status.equals(a.toString())) {
-                    statusEnum = a;
+            for (TaskStatus statusTask : TaskStatus.values()) {
+                if (status.equals(statusTask.toString())) {
+                    statusEnum = statusTask;
                 }
             }
             switch (lineTask[1]) {
@@ -158,27 +161,39 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     subtask.setStatus(statusEnum);
                     return subtask;
                 default:
-                    return null;
+                    throw new RuntimeException("Ошибка чтения файла");
+            }
+        } catch (RuntimeException e) {
+            try {
+                throw new ManagerSaveException("Ошибка чтения файла");
+            } catch (ManagerSaveException exp) {
+                System.out.println(exp.getMessage());
             }
         }
-
-        private static String historyToString (LinkedList < Task > history) {
-            String[] historyIdArray = new String[history.size()];
-            int i = 0;
-            for (Task task : history) {
-                historyIdArray[i] = Integer.toString(task.getId());
-                i++;
-            }
-            return String.join(", ", historyIdArray);
-        }
-
-        static List<Integer> historyFromString (String historyId){
-            String[] historyArrayStr = historyId.split(", ");
-            Integer[] historyArrayInt = new Integer[historyArrayStr.length];
-            for (int i = 0; i < historyArrayStr.length; i++) {
-                historyArrayInt[i] = Integer.parseInt(historyArrayStr[i]);
-            }
-            return Arrays.asList(historyArrayInt);
-        }
+        return null;
     }
+
+    private static String historyToString(LinkedList<Task> history) {
+        String[] historyIdArray = new String[history.size()];
+        int i = 0;
+        for (Task task : history) {
+            historyIdArray[i] = Integer.toString(task.getId());
+            i++;
+        }
+        return String.join(", ", historyIdArray);
+    }
+
+    static List<Integer> historyFromString(String historyId) {
+        String[] historyArrayStr = historyId.split(", ");
+        Integer[] historyArrayInt = new Integer[historyArrayStr.length];
+        for (int i = 0; i < historyArrayStr.length; i++) {
+            historyArrayInt[i] = Integer.parseInt(historyArrayStr[i]);
+        }
+        return Arrays.asList(historyArrayInt);
+    }
+
+    public File getFile() {
+        return file;
+    }
+}
 
