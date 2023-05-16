@@ -1,15 +1,21 @@
 package Tasks;
 
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class SingleTask extends Task{
-    public SingleTask(String title, String description, int id) {
+    public SingleTask(String title, String description, int id, LocalDateTime startTime, Duration duration) {
         super(title,description,id);
+        this.startTime=startTime;
+        this.duration= duration;
         status = TaskStatus.NEW;
         type = TaskType.SingleTask;
     }
 
     @Override
     public String toString() {
-        return id+",SingleTask,"+title +","+status+","+description;
+        return id+",SingleTask,"+title +","+status+","+description+","+startTime+","+duration;
 
     }
     @Override

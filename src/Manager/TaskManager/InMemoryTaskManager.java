@@ -3,9 +3,8 @@ package Manager.TaskManager;
 import Manager.History.InMemoryHistoryManager;
 import Tasks.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, SingleTask> taskList;
@@ -26,9 +25,14 @@ public class InMemoryTaskManager implements TaskManager {
         return history.getHistory();
     }
 
-     public int getId() {
+    public int getId() {
         return id;
     }
+
+    public int generateId() {
+        return id++;
+    }
+
 
     @Override
     public ArrayList<Task> getAllTasks() {
@@ -71,8 +75,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void setSingleTask(SingleTask newSingleTask) {
-        taskList.put(id, newSingleTask);
-        generateId();
+        try {
+            checkTimeAtAdding(newSingleTask);
+            taskList.put(id, newSingleTask);
+            generateId();
+        } catch(RuntimeException e) {
+            System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");
+        }
     }
 
     @Override
@@ -83,10 +92,15 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void setSubtask(Subtask newSubtask) {
-        subtaskList.put(id, newSubtask);
-        epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
-        epicList.get(newSubtask.getIdEpic()).setStatus();
-        generateId();
+        try {
+            checkTimeAtAdding(newSubtask);
+            subtaskList.put(id, newSubtask);
+            epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
+            epicList.get(newSubtask.getIdEpic()).setStatus();
+            generateId();
+        } catch (RuntimeException e) {
+            System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");
+        }
     }
 
     @Override
@@ -113,23 +127,72 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSingleTask(SingleTask updatedSingleTask) {
-        taskList.put(updatedSingleTask.getId(), updatedSingleTask);
+        try {
+            getTask(updatedSingleTask.getId()).getId();
+            taskList.put(updatedSingleTask.getId(), updatedSingleTask);
+        } catch (NullPointerException e) {
+            System.out.println("Обновлённая задача не задана или её нет в списке задач!");
+        }
     }
 
     @Override
     public void updateEpic(Epic updatedEpic) {
-        epicList.put(updatedEpic.getId(), updatedEpic);
+        try {
+            getTask(updatedEpic.getId()).getId();
+            epicList.put(updatedEpic.getId(), updatedEpic);
+        } catch (NullPointerException e) {
+            System.out.println("Обновлёный эпик не задан или его нет в списке задач!");
+        }
     }
 
     @Override
     public void updateSubtask(Subtask updatedSubtask) {
-        subtaskList.put(updatedSubtask.getId(), updatedSubtask);
-        epicList.get(updatedSubtask.getIdEpic()).addSubtask(updatedSubtask);
-        epicList.get(updatedSubtask.getIdEpic()).setStatus();
+        try {
+            getTask(updatedSubtask.getId()).getId();
+            subtaskList.put(updatedSubtask.getId(), updatedSubtask);
+            epicList.get(updatedSubtask.getIdEpic()).addSubtask(updatedSubtask);
+            epicList.get(updatedSubtask.getIdEpic()).setStatus();
+        } catch (NullPointerException e) {
+            System.out.println("Обновлённая подзадача не задан или её нет в списке задач!");
+        }
     }
 
-    private int generateId() {
-        return id++;
+    @Override
+    public TreeSet getPrioritizedTasks() {
+        ArrayList<Task> tasks = getAllTasks();
+        TreeSet<Task> tasksSet = new TreeSet<>(new Comparator<Task>() {
+            @Override
+            public int compare(Task s1, Task s2) {
+                if (s2.getStartTime() == null || s1.getStartTime() == null) {
+                    if (s2.getStartTime() == null) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                } else {
+                    return s1.getStartTime().compareTo(s2.getStartTime());
+                }
+            }
+        });
+        Set<Task> set = tasks.stream().filter((task) -> task.getType() == TaskType.SingleTask ||
+                task.getType() == TaskType.Subtask).collect(Collectors.toSet());
+        tasksSet.addAll(set);
+        return tasksSet;
     }
 
+    public void checkTimeAtAdding(Task taskAdding) throws RuntimeException {
+        if(taskAdding.startTime==null){
+            return;
+        }
+        for (Task task : getAllTasks()) {
+            if(task.startTime==null){
+                continue;
+            }
+            if (!(taskAdding.startTime.isBefore(task.startTime)&&taskAdding.startTime.plus(taskAdding.duration).
+                    isBefore(task.startTime)||
+                    taskAdding.startTime.isAfter(task.startTime.plus(task.duration)))) {
+                throw new RuntimeException("Ошибка задачи времени");
+            }
+        }
+    }
 }

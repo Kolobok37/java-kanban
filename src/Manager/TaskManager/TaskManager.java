@@ -7,6 +7,7 @@ import Tasks.Task;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.TreeSet;
 
 public interface TaskManager {
     LinkedList<Task> getHistoryMemory();
@@ -29,5 +30,8 @@ public interface TaskManager {
 
     void updateEpic(Epic updatedEpic);
     void updateSubtask(Subtask updatedSubtask);
+
+    int getId();
+    TreeSet getPrioritizedTasks();
 }
 

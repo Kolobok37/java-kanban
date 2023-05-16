@@ -1,19 +1,33 @@
 package Tasks;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 
 
 public class Epic extends Task {
-    private HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    public HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    LocalDateTime endTime;
+
+    public Epic(String title, String description, int id,LocalDateTime startTime, Duration duration) {
+        super(title, description, id);
+        type = TaskType.Epic;
+        status = TaskStatus.NEW;
+        this.duration = duration;
+        this.startTime = startTime;
+    }
 
     public Epic(String title, String description, int id) {
         super(title, description, id);
         type = TaskType.Epic;
+        status = TaskStatus.NEW;
+        duration = Duration.ZERO;
+        startTime = LocalDateTime.MIN;
     }
 
     @Override
     public String toString() {
-        return id+",Epic,"+title +","+status+","+description;
+        return id + ",Epic," + title + "," + status + "," + description+","+startTime+","+duration;
     }
 
     @Override
@@ -43,10 +57,12 @@ public class Epic extends Task {
 
     public void removeSubtask(Subtask newSubtask) {
         subtasks.remove(subtasks.get(newSubtask.getId()));
+        calculateTime();
     }
 
     public void addSubtask(Subtask newSubtask) {
         subtasks.put(newSubtask.getId(), newSubtask);
+        calculateTime();
     }
 
     public HashMap<Integer, Subtask> getSubtasks() {
@@ -56,9 +72,11 @@ public class Epic extends Task {
     public TaskStatus getStatus() {
         return status;
     }
-public void loadStatus(TaskStatus status){
-        this.status=status;
+
+    public void loadStatus(TaskStatus status) {
+        this.status = status;
     }
+
     public void setStatus() {
         int newTracker = 0;
         int doneTracker = 0;
@@ -83,4 +101,28 @@ public void loadStatus(TaskStatus status){
             status = TaskStatus.IN_PROGRESS;
         }
     }
-}
+
+    public void calculateTime() {
+        startTime = LocalDateTime.MAX;
+        endTime = LocalDateTime.MIN;
+        duration = Duration.ZERO;
+        for (Subtask subtask : subtasks.values()) {
+            if(subtask.getStartTime()==null){
+                continue;
+            }
+                if (subtask.getStartTime().isBefore(startTime)) {
+                    startTime = subtask.getStartTime();
+                }
+                if (subtask.getEndTime().isAfter(endTime)) {
+                    endTime = subtask.getEndTime();
+                }
+                duration = duration.plus(subtask.getDuration());
+            }
+        if (startTime==LocalDateTime.MAX){
+            startTime = null;
+            endTime = null;
+            duration = null;
+        }
+        }
+    }
+

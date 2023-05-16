@@ -4,6 +4,7 @@ import Tasks.Task;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class InMemoryHistoryManager implements HistoryManager {
     HashMap<Integer, Node> nodeHashMap = new HashMap<>();
@@ -83,5 +84,18 @@ class Node<T extends Task> {
 
     public Task getTask() {
         return task;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Node<?> node = (Node<?>) o;
+        return Objects.equals(next, node.next) && Objects.equals(previous, node.previous) && Objects.equals(task, node.task);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(next, previous, task);
     }
 }

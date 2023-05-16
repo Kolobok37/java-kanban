@@ -5,6 +5,8 @@ import Manager.Manager;
 import Tasks.*;
 
 import java.io.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,21 +21,36 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public static void main(String[] args) {
-        FileBackedTasksManager manager = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
+        FileBackedTasksManager manager = new FileBackedTasksManager(Manager.getDefaultHistory(),
+                new File("TaskManager"));
 
-        SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.getId());
+        SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.getId(),
+                LocalDateTime.of(2000,1,1,7,0), Duration.ofHours(1));
         manager.setSingleTask(testSingleTask1);
         Epic testEpic1 = new Epic("Сделать ремонт", "В квартире", manager.getId());
         manager.setEpic(testEpic1);
         Subtask testSubtask1 = new Subtask("Составить список", "Стройматериалы",
-                manager.getId(), testEpic1.getId());
+                manager.getId(), testEpic1.getId(), LocalDateTime.of(2000,1,1,3,0),
+                Duration.ofHours(1));
         manager.setSubtask(testSubtask1);
+        Subtask testSubtask2 = new Subtask("Покрасить стены", "Стройматериалы",
+                manager.getId(), testEpic1.getId(), LocalDateTime.of(2000,1,1,5,0),
+                Duration.ofHours(1));
+        manager.setSubtask(testSubtask2);
         manager.getTask(1);
+        System.out.println("Отсортированный список задач:");
+        System.out.println(manager.getPrioritizedTasks());
 
-        FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
+        FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(),
+                new File("TaskManager"));
         manager2.loadFromFile();
+        System.out.println("Все задачи после открытия файла:");
         System.out.println(manager2.getAllTasks());
+        System.out.println("История после открытия файла:");
         System.out.println(manager2.getHistoryMemory());
+        System.out.println("Отсортированный список задач после открытия файла:");
+        System.out.println(manager2.getPrioritizedTasks());
+
     }
 
     @Override
@@ -104,7 +121,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             String line = buf.readLine();
             line = buf.readLine();
             while (!line.isEmpty()) {
+                //System.out.println("линия" +line);
                 Task task = fromString(line);
+                //System.out.println("zadaca"+task);
                 line = buf.readLine();
                 switch (task.getType()) {
                     case Epic: {
@@ -122,7 +141,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 }
             }
             line = buf.readLine();
-            if (!line.isEmpty()) {
+            if (line!=null) {
                 List<Integer> history = historyFromString(line);
                 for (Integer i : history) {
                     getTask(i);
@@ -149,15 +168,15 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             }
             switch (lineTask[1]) {
                 case ("SingleTask"):
-                    SingleTask singleTask = new SingleTask(lineTask[2], lineTask[4], Integer.parseInt(lineTask[0]));
+                    SingleTask singleTask = new SingleTask(lineTask[2], lineTask[4], Integer.parseInt(lineTask[0]), LocalDateTime.parse(lineTask[5]),Duration.parse(lineTask[6]));
                     singleTask.setStatus(statusEnum);
                     return singleTask;
                 case ("Epic"):
-                    Epic epic = new Epic(lineTask[2], lineTask[4], Integer.parseInt(lineTask[0]));
+                    Epic epic = new Epic(lineTask[2], lineTask[4], Integer.parseInt(lineTask[0]),LocalDateTime.parse(lineTask[5]),Duration.parse(lineTask[6]));
                     epic.loadStatus(statusEnum);
                     return epic;
                 case ("Subtask"):
-                    Subtask subtask = new Subtask(lineTask[2], lineTask[4], Integer.parseInt(lineTask[0]), Integer.parseInt(lineTask[5]));
+                    Subtask subtask = new Subtask(lineTask[2], lineTask[4], Integer.parseInt(lineTask[0]), Integer.parseInt(lineTask[5]),LocalDateTime.parse(lineTask[6]),Duration.parse(lineTask[7]));
                     subtask.setStatus(statusEnum);
                     return subtask;
                 default:
