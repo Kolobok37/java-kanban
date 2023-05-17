@@ -50,7 +50,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         System.out.println(manager2.getHistoryMemory());
         System.out.println("Отсортированный список задач после открытия файла:");
         System.out.println(manager2.getPrioritizedTasks());
-
     }
 
     @Override

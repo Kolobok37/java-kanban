@@ -86,6 +86,6 @@ public class EpicTest {
                 2, 0,LocalDateTime.of(2000,1,1,2,0), Duration.ofHours(1));
         testEpic.addSubtask(testSubtask1);
         testEpic.addSubtask(testSubtask2);
-        testEpic.subtasks.values().stream().sorted((p1, p2)->p2.startTime.compareTo(p1.startTime)).forEach(System.out::println);
+        testEpic.subtasks.values().stream().sorted((p1, p2)->p2.getStartTime().compareTo(p1.getStartTime())).forEach(System.out::println);
     }
 }

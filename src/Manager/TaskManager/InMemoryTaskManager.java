@@ -181,16 +181,16 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public void checkTimeAtAdding(Task taskAdding) throws RuntimeException {
-        if(taskAdding.startTime==null){
+        if(taskAdding.getStartTime()==null){
             return;
         }
         for (Task task : getAllTasks()) {
-            if(task.startTime==null){
+            if(task.getStartTime()==null){
                 continue;
             }
-            if (!(taskAdding.startTime.isBefore(task.startTime)&&taskAdding.startTime.plus(taskAdding.duration).
-                    isBefore(task.startTime)||
-                    taskAdding.startTime.isAfter(task.startTime.plus(task.duration)))) {
+            if (!(taskAdding.getStartTime().isBefore(task.getStartTime())&&taskAdding.getStartTime().plus(taskAdding.getDuration()).
+                    isBefore(task.getStartTime())||
+                    taskAdding.getStartTime().isAfter(task.getStartTime().plus(task.getDuration())))) {
                 throw new RuntimeException("Ошибка задачи времени");
             }
         }

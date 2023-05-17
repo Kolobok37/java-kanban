@@ -5,6 +5,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public abstract class Task {
+    protected String title;
+    protected String description;
+    protected int id;
+    protected TaskStatus status;
+    protected LocalDateTime startTime;
+    protected final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM HH:mm");
+    protected TaskType type;
+
     public Task(String title, String description, int id) {
         this.title = title;
         this.description = description;
@@ -12,41 +20,41 @@ public abstract class Task {
 
     }
 
-    protected String title;
-
-    protected String description;
-    protected int id;
-    protected TaskStatus status;
-    public LocalDateTime startTime;
-    public Duration duration;
-    public  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM HH:mm");
-    protected TaskType type;
-
+    abstract public Duration getDuration();
     public TaskType getType() {
         return type;
     }
 
-    abstract public String getTitle();
+    public String getTitle(){
+        return title;
+    }
 
-    abstract public void setTitle(String title);
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    abstract public String getDescription();
+    public String getDescription() {
+        return description;
+    }
 
-    abstract public void setDescription(String description);
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
 
     public int getId(){
         return id;
     }
+
     public LocalDateTime getEndTime(){
-        return startTime.plus(duration);
+        return startTime.plus(getDuration());
     }
 
     public LocalDateTime getStartTime() {
         return startTime;
-    }
-
-    public Duration getDuration() {
-        return duration;
     }
 
     public void setId(int id) {

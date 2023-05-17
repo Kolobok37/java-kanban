@@ -7,13 +7,12 @@ import java.util.HashMap;
 
 public class Epic extends Task {
     public HashMap<Integer, Subtask> subtasks = new HashMap<>();
-    LocalDateTime endTime;
+    private LocalDateTime endTime;
 
-    public Epic(String title, String description, int id,LocalDateTime startTime, Duration duration) {
+    public Epic(String title, String description, int id, LocalDateTime startTime, Duration duration) {
         super(title, description, id);
         type = TaskType.Epic;
         status = TaskStatus.NEW;
-        this.duration = duration;
         this.startTime = startTime;
     }
 
@@ -21,39 +20,14 @@ public class Epic extends Task {
         super(title, description, id);
         type = TaskType.Epic;
         status = TaskStatus.NEW;
-        duration = Duration.ZERO;
         startTime = LocalDateTime.MIN;
     }
 
     @Override
     public String toString() {
-        return id + ",Epic," + title + "," + status + "," + description+","+startTime+","+duration;
+        return id + ",Epic," + title + "," + status + "," + description + "," + startTime + "," + getDuration();
     }
 
-    @Override
-    public String getTitle() {
-        return title;
-    }
-
-    @Override
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
 
     public void removeSubtask(Subtask newSubtask) {
         subtasks.remove(subtasks.get(newSubtask.getId()));
@@ -67,10 +41,6 @@ public class Epic extends Task {
 
     public HashMap<Integer, Subtask> getSubtasks() {
         return subtasks;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
     }
 
     public void loadStatus(TaskStatus status) {
@@ -102,27 +72,33 @@ public class Epic extends Task {
         }
     }
 
-    public void calculateTime() {
+    @Override
+    public Duration getDuration() {
+        Duration duration = Duration.ZERO;
+        for (Subtask subtask : subtasks.values()) {
+            duration = duration.plus(subtask.getDuration());
+        }
+        return duration;
+    }
+
+    private void calculateTime() {
         startTime = LocalDateTime.MAX;
         endTime = LocalDateTime.MIN;
-        duration = Duration.ZERO;
         for (Subtask subtask : subtasks.values()) {
-            if(subtask.getStartTime()==null){
+            if (subtask.getStartTime() == null) {
                 continue;
             }
-                if (subtask.getStartTime().isBefore(startTime)) {
-                    startTime = subtask.getStartTime();
-                }
-                if (subtask.getEndTime().isAfter(endTime)) {
-                    endTime = subtask.getEndTime();
-                }
-                duration = duration.plus(subtask.getDuration());
+            if (subtask.getStartTime().isBefore(startTime)) {
+                startTime = subtask.getStartTime();
             }
-        if (startTime==LocalDateTime.MAX){
+            if (subtask.getEndTime().isAfter(endTime)) {
+                endTime = subtask.getEndTime();
+            }
+        }
+        if (startTime == LocalDateTime.MAX) {
             startTime = null;
             endTime = null;
-            duration = null;
-        }
         }
     }
+}
 
