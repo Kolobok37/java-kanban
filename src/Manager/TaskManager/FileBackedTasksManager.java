@@ -43,7 +43,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
         FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(),
                 new File("TaskManager"));
-        manager2.loadFromFile();
+        manager2.load();
         System.out.println("Все задачи после открытия файла:");
         System.out.println(manager2.getAllTasks());
         System.out.println("История после открытия файла:");
@@ -101,21 +101,21 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    public void loadEpic(Epic newEpic) {
+    private void loadEpic(Epic newEpic) {
         epicList.put(newEpic.getId(), newEpic);
     }
 
-    public void loadSingleTask(SingleTask newSingleTask) {
+    private void loadSingleTask(SingleTask newSingleTask) {
         taskList.put(newSingleTask.getId(), newSingleTask);
     }
 
-    public void loadSubtask(Subtask newSubtask) {
+    private void loadSubtask(Subtask newSubtask) {
         subtaskList.put(newSubtask.getId(), newSubtask);
         epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
         epicList.get(newSubtask.getIdEpic()).setStatus();
     }
 
-    public void loadFromFile() {
+    public void load() {
         try (BufferedReader buf = new BufferedReader(new FileReader(file))) {
             String line = buf.readLine();
             line = buf.readLine();
@@ -155,7 +155,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    public Task fromString(String value) {
+    private Task fromString(String value) {
         String[] lineTask = value.split(",");
         try {
             String status = lineTask[3];
@@ -201,7 +201,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return String.join(", ", historyIdArray);
     }
 
-    static List<Integer> historyFromString(String historyId) {
+    private static List<Integer> historyFromString(String historyId) {
         String[] historyArrayStr = historyId.split(", ");
         Integer[] historyArrayInt = new Integer[historyArrayStr.length];
         for (int i = 0; i < historyArrayStr.length; i++) {

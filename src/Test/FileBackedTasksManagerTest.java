@@ -11,11 +11,8 @@ import org.junit.jupiter.api.Test;
 
 
 import java.io.File;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>{
@@ -34,7 +31,7 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
                 3, testEpic1.getId(),LocalDateTime.of(2000,1,1,2,0), Duration.ofHours(1));
         manager.setSubtask(testSubtask1);
         FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
-        manager2.loadFromFile();
+        manager2.load();
         Assertions.assertEquals(manager2.getAllTasks().toString(), manager.getAllTasks().toString());
     }
     @Test
@@ -49,7 +46,7 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
         manager.getTask(1);
         manager.getTask(2);
         FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
-        manager2.loadFromFile();
+        manager2.load();
         Assertions.assertEquals(manager2.getHistoryMemory().toString(),manager.getHistoryMemory().toString());
     }
     @Test
@@ -58,7 +55,7 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
         manager.setSingleTask(testSingleTask1);
         manager.removeTask(1);
         FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
-        manager2.loadFromFile();
+        manager2.load();
         Assertions.assertEquals(List.of().toString(),manager2.getAllTasks().toString().toString());
     }
 
@@ -67,7 +64,7 @@ public class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksM
         Epic testEpic1 = new Epic("Title2", "Description2",2);
         manager.setEpic(testEpic1);        manager.setEpic(testEpic1);
         FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(), new File("TaskManager"));
-        manager2.loadFromFile();
+        manager2.load();
         Assertions.assertEquals(List.of(testEpic1).toString(),manager2.getAllTasks().toString());
     }
 }
