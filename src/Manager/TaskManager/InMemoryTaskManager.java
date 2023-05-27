@@ -3,6 +3,7 @@ package Manager.TaskManager;
 import Manager.History.InMemoryHistoryManager;
 import Tasks.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,7 +75,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void setSingleTask(SingleTask newSingleTask) {
+    public void setSingleTask(SingleTask newSingleTask) throws IOException, InterruptedException {
         try {
             checkTimeAtAdding(newSingleTask);
             taskList.put(id, newSingleTask);
@@ -85,13 +86,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void setEpic(Epic newEpic) {
+    public void setEpic(Epic newEpic) throws IOException, InterruptedException {
         epicList.put(id, newEpic);
         generateId();
     }
 
     @Override
-    public void setSubtask(Subtask newSubtask) {
+    public void setSubtask(Subtask newSubtask) throws IOException, InterruptedException {
         try {
             checkTimeAtAdding(newSubtask);
             subtaskList.put(id, newSubtask);

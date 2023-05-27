@@ -5,6 +5,7 @@ import Tasks.SingleTask;
 import Tasks.Subtask;
 import Tasks.Task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.TreeSet;
@@ -18,11 +19,11 @@ public interface TaskManager {
 
     Task getTask(int id) ;
 
-    void setSingleTask(SingleTask newSingleTask) ;
+    void setSingleTask(SingleTask newSingleTask) throws IOException, InterruptedException;
 
-    void setEpic(Epic newEpic) ;
+    void setEpic(Epic newEpic) throws IOException, InterruptedException;
 
-    void setSubtask(Subtask newSubtask) ;
+    void setSubtask(Subtask newSubtask) throws IOException, InterruptedException;
 
     void removeTask(int id) ;
 
