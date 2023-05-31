@@ -17,7 +17,6 @@ public abstract class Task {
         this.title = title;
         this.description = description;
         this.id = id;
-
     }
 
     abstract public Duration getDuration();

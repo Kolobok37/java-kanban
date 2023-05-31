@@ -20,37 +20,37 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-//    public static void main(String[] args) {
-//        FileBackedTasksManager manager = new FileBackedTasksManager(Manager.getDefaultHistory(),
-//                new File("TaskManager"));
-//
-//        SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.getId(),
-//                LocalDateTime.of(2000,1,1,7,0), Duration.ofHours(1));
-//        manager.setSingleTask(testSingleTask1);
-//        Epic testEpic1 = new Epic("Сделать ремонт", "В квартире", manager.getId());
-//        manager.setEpic(testEpic1);
-//        Subtask testSubtask1 = new Subtask("Составить список", "Стройматериалы",
-//                manager.getId(), testEpic1.getId(), LocalDateTime.of(2000,1,1,3,0),
-//                Duration.ofHours(1));
-//        manager.setSubtask(testSubtask1);
-//        Subtask testSubtask2 = new Subtask("Покрасить стены", "Стройматериалы",
-//                manager.getId(), testEpic1.getId(), LocalDateTime.of(2000,1,1,5,0),
-//                Duration.ofHours(1));
-//        manager.setSubtask(testSubtask2);
-//        manager.getTask(1);
-//        System.out.println("Отсортированный список задач:");
-//        System.out.println(manager.getPrioritizedTasks());
-//
-//        FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(),
-//                new File("TaskManager"));
-//        manager2.load();
-//        System.out.println("Все задачи после открытия файла:");
-//        System.out.println(manager2.getAllTasks());
-//        System.out.println("История после открытия файла:");
-//        System.out.println(manager2.getHistoryMemory());
-//        System.out.println("Отсортированный список задач после открытия файла:");
-//        System.out.println(manager2.getPrioritizedTasks());
-//    }
+    public static void main(String[] args) {
+        FileBackedTasksManager manager = new FileBackedTasksManager(Manager.getDefaultHistory(),
+                new File("TaskManager"));
+
+        SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.getId(),
+                LocalDateTime.of(2000,1,1,7,0), Duration.ofHours(1));
+        manager.setSingleTask(testSingleTask1);
+        Epic testEpic1 = new Epic("Сделать ремонт", "В квартире", manager.getId());
+        manager.setEpic(testEpic1);
+        Subtask testSubtask1 = new Subtask("Составить список", "Стройматериалы",
+                manager.getId(), testEpic1.getId(), LocalDateTime.of(2000,1,1,3,0),
+                Duration.ofHours(1));
+        manager.setSubtask(testSubtask1);
+        Subtask testSubtask2 = new Subtask("Покрасить стены", "Стройматериалы",
+                manager.getId(), testEpic1.getId(), LocalDateTime.of(2000,1,1,5,0),
+                Duration.ofHours(1));
+        manager.setSubtask(testSubtask2);
+        manager.getTask(1);
+        System.out.println("Отсортированный список задач:");
+        System.out.println(manager.getPrioritizedTasks());
+
+        FileBackedTasksManager manager2 = new FileBackedTasksManager(Manager.getDefaultHistory(),
+                new File("TaskManager"));
+        manager2.load();
+        System.out.println("Все задачи после открытия файла:");
+        System.out.println(manager2.getAllTasks());
+        System.out.println("История после открытия файла:");
+        System.out.println(manager2.getHistoryMemory());
+        System.out.println("Отсортированный список задач после открытия файла:");
+        System.out.println(manager2.getPrioritizedTasks());
+    }
 
     @Override
     public Task getTask(int id) {
@@ -60,20 +60,20 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void setEpic(Epic newEpic) throws IOException, InterruptedException {    //Id Task присваевается в конструкторе и передаётся в метод уже с id,
+    public void setEpic(Epic newEpic){    //Id Task присваевается в конструкторе и передаётся в метод уже с id,
         super.setEpic(newEpic);            // на данный момент логика такая.
         save();
     }
 
 
     @Override
-    public void setSingleTask(SingleTask newSingleTask) throws IOException, InterruptedException {
+    public void setSingleTask(SingleTask newSingleTask){
         super.setSingleTask(newSingleTask);
         save();
     }
 
     @Override
-    public void setSubtask(Subtask newSubtask) throws IOException, InterruptedException {
+    public void setSubtask(Subtask newSubtask){
         super.setSubtask(newSubtask);
         save();
     }

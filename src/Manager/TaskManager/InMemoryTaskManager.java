@@ -75,30 +75,27 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void setSingleTask(SingleTask newSingleTask) throws IOException, InterruptedException {
+    public void setSingleTask(SingleTask newSingleTask){
         try {
             checkTimeAtAdding(newSingleTask);
-            taskList.put(id, newSingleTask);
-            generateId();
+            taskList.put(newSingleTask.getId(), newSingleTask);
         } catch(RuntimeException e) {
             System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");
         }
     }
 
     @Override
-    public void setEpic(Epic newEpic) throws IOException, InterruptedException {
-        epicList.put(id, newEpic);
-        generateId();
+    public void setEpic(Epic newEpic){
+        epicList.put(newEpic.getId(), newEpic);
     }
 
     @Override
-    public void setSubtask(Subtask newSubtask) throws IOException, InterruptedException {
+    public void setSubtask(Subtask newSubtask){
         try {
             checkTimeAtAdding(newSubtask);
-            subtaskList.put(id, newSubtask);
+            subtaskList.put(newSubtask.getId(), newSubtask);
             epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
             epicList.get(newSubtask.getIdEpic()).setStatus();
-            generateId();
         } catch (RuntimeException e) {
             System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");
         }
@@ -194,6 +191,16 @@ public class InMemoryTaskManager implements TaskManager {
                     taskAdding.getStartTime().isAfter(task.getStartTime().plus(task.getDuration())))) {
                 throw new RuntimeException("Ошибка задачи времени");
             }
+        }
+    }
+    static public TaskStatus getTaskStatusFromString(String status){
+        switch (status){
+            case "IN_PROGRESS":
+                return TaskStatus.IN_PROGRESS;
+            case "DONE":
+                return TaskStatus.DONE;
+            default:
+                return TaskStatus.NEW;
         }
     }
 }

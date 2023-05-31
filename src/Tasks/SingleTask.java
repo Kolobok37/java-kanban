@@ -18,7 +18,7 @@ public class SingleTask extends Task{
 
     @Override
     public String toString() {
-        return id+",SingleTask,"+title +","+status+","+description+","+startTime+","+duration;
+        return id+",SingleTask,"+title +","+status+","+description+","+startTime.format(formatter)+","+duration;
 
     }
 
