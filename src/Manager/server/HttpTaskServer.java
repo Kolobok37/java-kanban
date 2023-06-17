@@ -24,6 +24,8 @@ public class HttpTaskServer{
         server.createContext("/register", this::register);
         server.createContext("/save", this::save);
         server.createContext("/load", this::load);
+        server.createContext("/delete", this::delete);
+
     }
     public static void main(String[] args) throws IOException {
         new HttpTaskServer().start();
@@ -97,6 +99,33 @@ public class HttpTaskServer{
                 sendText(h, apiToken);
             } else {
                 System.out.println("/register ждёт GET-запрос, а получил " + h.getRequestMethod());
+                h.sendResponseHeaders(405, 0);
+            }
+        } finally {
+            h.close();
+        }
+    }
+
+    private void delete(HttpExchange h) throws IOException{
+        try {
+            System.out.println("\n/delete");
+            if (!hasAuth(h)) {
+                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
+                h.sendResponseHeaders(403, 0);
+                return;
+            }
+            if ("DELETE".equals(h.getRequestMethod())) {
+                String key = h.getRequestURI().getPath().substring("/delete/".length());
+                if (key.isEmpty()) {
+                    System.out.println("Key для сохранения пустой. key указывается в пути: /delete/{key}");
+                    h.sendResponseHeaders(400, 0);
+                    return;
+                }
+                data.remove(key);
+                System.out.println("Значение для ключа " + key + " успешно обновлено!");
+                h.sendResponseHeaders(200, 0);
+            } else {
+                System.out.println("/save ждёт DELETE-запрос, а получил: " + h.getRequestMethod());
                 h.sendResponseHeaders(405, 0);
             }
         } finally {

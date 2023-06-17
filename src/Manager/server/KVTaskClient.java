@@ -44,7 +44,6 @@ public class KVTaskClient {
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println("Код ответа: " + response.statusCode());
-        //System.out.println("Тело ответа: " + response.body());
         return response.body();
     }
 
@@ -53,6 +52,15 @@ public class KVTaskClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url + "save/"+key+"?API_TOKEN="+authToken))
                 .POST(HttpRequest.BodyPublishers.ofString(value))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    public void delete(String key) throws IOException,InterruptedException{
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url + "delete/"+key+"?API_TOKEN="+authToken))
+                .DELETE()
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }

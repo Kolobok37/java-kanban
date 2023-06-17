@@ -96,14 +96,15 @@ public class HttpTaskManager extends FileBackedTasksManager {
     public TaskData loadFromJson(String key) {
         try {
             String jsonTask = client.load(key);
-            ArrayList<Task> task = gson.fromJson(jsonTask, new TypeToken<ArrayList<Task>>() {
+            System.out.println(jsonTask);
+            List<Task> task = gson.fromJson(jsonTask, new TypeToken<List<Task>>() {
             }.getType());
 
             String jsonHistory = client.load("history");
             List<Integer> history = gson.fromJson(jsonHistory, new TypeToken<Integer>() {
             }.getType());
             System.out.println(history);
-            TaskData tasks = new TaskData(task,history);
+            TaskData tasks = new TaskData(null,history);
             return tasks;
         } catch (IOException | InterruptedException exception) {
             return null;
@@ -125,8 +126,8 @@ public class HttpTaskManager extends FileBackedTasksManager {
         manager.setSingleTask(testSingleTask2);
         manager.setEpic(testEpic1);
         manager.setSubtask(testSubtask1);
-manager.getTask(1);
+        manager.getTask(1);
         TaskData tasks = manager.loadFromJson("tasks");
-        System.out.println(tasks.getTasks());
+        System.out.println(tasks.getHistory());
     }
 }
