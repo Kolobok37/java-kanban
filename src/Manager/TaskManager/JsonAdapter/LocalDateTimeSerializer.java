@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 public class LocalDateTimeSerializer implements JsonSerializer<LocalDateTime> {
     @Override
-    public JsonElement serialize(LocalDateTime localDateTime, Type typeOfTask, JsonSerializationContext context) {
+    public  JsonElement serialize(LocalDateTime localDateTime, Type typeOfTask, JsonSerializationContext context) {
         JsonObject result = new JsonObject();
         result.addProperty("year", localDateTime.getYear());
         result.addProperty("month", localDateTime.getMonth().getValue());

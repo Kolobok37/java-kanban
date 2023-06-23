@@ -59,4 +59,14 @@ public abstract class Task {
     public void setId(int id) {
         this.id = id;
     }
+
+    public TaskStatus searchStatus(String status){
+        TaskStatus statusEnum = TaskStatus.NEW;
+        for (TaskStatus statusTask : TaskStatus.values()) {
+            if (status.equals(statusTask.toString())) {
+                statusEnum = statusTask;
+            }
+        }
+        return statusEnum;
+    }
 }

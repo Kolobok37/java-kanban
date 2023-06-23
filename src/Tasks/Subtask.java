@@ -17,6 +17,16 @@ public class Subtask extends Task{
         type = TaskType.Subtask;
     }
 
+    public Subtask(String title, String description, int id, int idEpic,LocalDateTime startTime, Duration duration,String status) {
+        super(title, description, id);
+        this.startTime=startTime;
+        this.duration= duration;
+        this.idEpic = idEpic;
+        this.status = searchStatus(status);
+        type = TaskType.Subtask;
+    }
+
+
     @Override
     public String toString() {
         return id+",Subtask,"+title +","+status+","+description+","+idEpic+","+startTime+","+duration;

@@ -18,7 +18,7 @@ public class DurationDeserializer implements JsonDeserializer<Duration> {
             JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
 
-        Duration duration = Duration.ofSeconds(jsonObject.get("seconds").getAsInt()).plusNanos(jsonObject.get("nanos").getAsInt());
+        Duration duration = Duration.ofSeconds(jsonObject.get("seconds").getAsInt());
         return duration;
     }
 }

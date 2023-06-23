@@ -12,11 +12,12 @@ import com.sun.net.httpserver.HttpExchange;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 
-public class HttpTaskServer{
+public class HttpTaskServer {
     public static final int PORT = 8078;
     private final String apiToken;
     private final HttpServer server;
     private final Map<String, String> data = new HashMap<>();
+
     public HttpTaskServer() throws IOException {
         apiToken = generateApiToken();
         server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
@@ -24,9 +25,62 @@ public class HttpTaskServer{
         server.createContext("/register", this::register);
         server.createContext("/save", this::save);
         server.createContext("/load", this::load);
-        server.createContext("/delete", this::delete);
+        //server.createContext("/delete", this::delete);
+        server.createContext("/tasks/task", this::task);
+        //server.createContext("/epic", this::epic);
+        //server.createContext("/subtask", this::subtask);
 
     }
+
+    private void task(HttpExchange h) throws IOException {
+        // TODO Добавьте получение значения по ключу
+        try {
+            System.out.println("\n/task");
+            if (!hasAuth(h)) {
+                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
+                h.sendResponseHeaders(403, 0);
+                return;
+            }
+            if ("GET".equals(h.getRequestMethod())) {
+                String key = h.getRequestURI().getPath().substring("/tasks/".length());
+                System.out.println(key);
+                System.out.println(key.isEmpty());
+                if (key.isEmpty()) {
+                    key="tasks/";
+                } else {
+                    key="tasks/" + key;
+                }
+                String body = data.get(key);
+                System.out.println(key);
+                sendText(h, body);
+            } else if ("POST".equals(h.getRequestMethod())) {
+                String key = h.getRequestURI().getPath().substring("/task/".length());
+                System.out.println(key);
+                if (key.isEmpty()) {
+                    key="/task/";
+                }
+                else{
+                    key="/task/" + key;
+                }
+                String value = readText(h);
+                if (value.isEmpty()) {
+                    System.out.println("Value для сохранения пустой. value указывается в теле запроса");
+                    h.sendResponseHeaders(400, 0);
+                    return;
+                }
+                data.put(key, value);
+                System.out.println("Значение для ключа " + key + " успешно обновлено!");
+                h.sendResponseHeaders(200, 0);
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка");
+        } finally {
+            System.out.println("файнали");
+
+            h.close();
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         new HttpTaskServer().start();
     }
@@ -80,6 +134,7 @@ public class HttpTaskServer{
                     h.sendResponseHeaders(400, 0);
                     return;
                 }
+                System.out.println(key);
                 data.put(key, value);
                 System.out.println("Значение для ключа " + key + " успешно обновлено!");
                 h.sendResponseHeaders(200, 0);
@@ -106,7 +161,7 @@ public class HttpTaskServer{
         }
     }
 
-    private void delete(HttpExchange h) throws IOException{
+    private void delete(HttpExchange h) throws IOException {
         try {
             System.out.println("\n/delete");
             if (!hasAuth(h)) {

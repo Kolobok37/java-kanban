@@ -38,6 +38,8 @@ public class KVTaskClient {
 
     public String  load(String key) throws IOException,InterruptedException{ // tasks, epics, subtasks , history
         HttpClient client = HttpClient.newHttpClient();
+        System.out.println(url + "load/"+key+"?API_TOKEN="+authToken);
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url + "load/"+key+"?API_TOKEN="+authToken))
                 .GET()
@@ -47,7 +49,7 @@ public class KVTaskClient {
         return response.body();
     }
 
-    public void save(String key, String value) throws IOException,InterruptedException{
+    public void put(String key, String value) throws IOException,InterruptedException{
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url + "save/"+key+"?API_TOKEN="+authToken))

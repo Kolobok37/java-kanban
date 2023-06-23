@@ -4,7 +4,9 @@ import Tasks.Task;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class InMemoryHistoryManager implements HistoryManager {
     HashMap<Integer, Node> nodeHashMap = new HashMap<>();
@@ -39,6 +41,12 @@ public class InMemoryHistoryManager implements HistoryManager {
             }
         }
         return tasks;
+    }
+
+    public List<Integer> getHistoryId(){
+        List<Integer> historyId = new LinkedList<>();
+        historyId = getHistory().stream().map(task -> task.getId()).collect(Collectors.toList());
+        return historyId;
     }
 
     @Override

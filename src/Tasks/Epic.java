@@ -1,12 +1,19 @@
 package Tasks;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.HashMap;
 
 
 public class Epic extends Task {
     public HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    public List<Integer> subtaskId;
+    Duration duration;
+
     private LocalDateTime endTime;
 
     public Epic(String title, String description, int id, LocalDateTime startTime, Duration duration) {
@@ -14,6 +21,15 @@ public class Epic extends Task {
         type = TaskType.Epic;
         status = TaskStatus.NEW;
         this.startTime = startTime;
+    }
+
+    public Epic(String title, String description, int id, LocalDateTime startTime, Duration duration, List<Integer>  subtaskId, String status) {
+        super(title, description, id);
+        type = TaskType.Epic;
+        this.duration=duration;
+        this.startTime = startTime;
+        this.subtaskId = subtaskId;
+this.status = searchStatus(status);
     }
 
     public Epic(String title, String description, int id) {
@@ -25,12 +41,13 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return id + ",Epic," + title + "," + status + "," + description + "," + startTime + "," + getDuration();
+        return id + ",Epic," + title + "," + status + "," + description + "," + startTime + "," + duration+"," + getSubtaskId();
     }
 
 
-    public void removeSubtask(Subtask newSubtask) {
-        subtasks.remove(subtasks.get(newSubtask.getId()));
+    public void removeSubtask(Subtask deletedSubtask) {
+        subtaskId.remove(deletedSubtask.getId());
+        subtasks.remove(subtasks.get(deletedSubtask.getId()));
         calculateTime();
     }
 
@@ -99,6 +116,16 @@ public class Epic extends Task {
             startTime = null;
             endTime = null;
         }
+        duration=getDuration();
     }
+
+    public List<Integer> getSubtaskId() {
+        return subtaskId;
+    }
+
+    public void addSubtaskId(int id){
+        subtaskId.add(id);
+    }
+
 }
 

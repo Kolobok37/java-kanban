@@ -95,6 +95,7 @@ public class InMemoryTaskManager implements TaskManager {
             checkTimeAtAdding(newSubtask);
             subtaskList.put(newSubtask.getId(), newSubtask);
             epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
+            //epicList.get(newSubtask.getIdEpic()).addSubtaskId(newSubtask.getId());
             epicList.get(newSubtask.getIdEpic()).setStatus();
         } catch (RuntimeException e) {
             System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");

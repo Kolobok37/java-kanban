@@ -1,56 +1,52 @@
 package Manager.TaskManager;
 
-import Manager.History.InMemoryHistoryManager;
 import Manager.Manager;
 import Manager.TaskManager.JsonAdapter.*;
 import Manager.server.KVTaskClient;
 import Tasks.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 
-public class HttpTaskManager extends FileBackedTasksManager {
+public class HttpTaskManager extends InMemoryTaskManager {
     Gson gson;
     private String url;
     private KVTaskClient client;
 
-    public HttpTaskManager(InMemoryHistoryManager history, String url) {// "http://localhost:8078/"
-        super(history, new File("TaskManager"));
+    public HttpTaskManager(String url) {// "http://localhost:8078/"
+        super(Manager.getDefaultHistory());
         this.url = url;
         client = new KVTaskClient(url);
-        gson = new GsonBuilder().registerTypeAdapter(Task.class, new TaskSerializer()).
+        gson = new GsonBuilder().registerTypeAdapter(SingleTask.class, new TaskSerializer()).
+                registerTypeAdapter(Epic.class, new TaskSerializer()).
+                registerTypeAdapter(Subtask.class, new TaskSerializer()).
                 registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer()).
-                registerTypeAdapter(TaskData.class, new TaskDeserializer()).
+                registerTypeAdapter(Duration.class, new DurationSerialize()).
+                registerTypeAdapter(SingleTask.class, new SingleTaskDeserializer()).
+                registerTypeAdapter(Epic.class, new EpicDeserializer()).
+                registerTypeAdapter(Subtask.class, new SubtaskDeserializer()).
                 registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer()).
                 registerTypeAdapter(Duration.class, new DurationDeserializer()).
-                create(); //
+                create();
     }
 
-//    @Override
-//    public Task getTask(int id) {
-//        Task task = super.getTask(id);
-//        save();
-//        return task;
-//    }
+    @Override
+    public Task getTask(int id) {
+        Task task = super.getTask(id);
+        save("tasks/history", gson.toJson(history.getHistoryId()));
+        return task;
+    }
 
     @Override
-    public void setEpic(Epic newEpic) {    //Id Task присваевается в конструкторе и передаётся в метод уже с id,
-        super.setEpic(newEpic);            // на данный момент логика такая.
+    public void setEpic(Epic newEpic) {
+        super.setEpic(newEpic);
         save("tasks/epic", gson.toJson(epicList.values()));
         save("tasks",gson.toJson(getAllTasks()));
     }
@@ -71,40 +67,46 @@ public class HttpTaskManager extends FileBackedTasksManager {
         save("tasks",gson.toJson(getAllTasks()));
     }
 
-//    @Override
-//    public void removeTask(int id) {
-//        super.removeTask(id);
-//        save();
-//    }
+    @Override
+    public void removeTask(int id) {
+        super.removeTask(id);
+        save("tasks",gson.toJson(getAllTasks()));
+    }
 
     private void save(String key, String value) { // делавет сохранение через Client
         try {
-            client.save(key, value);
+            client.put(key, value);
         } catch (IOException | InterruptedException e) {
 
         }
     }
 
-//    public void save(TaskData taskData) throws IOException, InterruptedException {
-//        String jsonTask = gson.toJson(taskData.getTasks());
-//        client.save("tasks", jsonTask);
-//        String jsonHistory = gson.toJson(taskData.getHistory());
-//        client.save("history", jsonHistory);
-//    }
-
 
     public TaskData loadFromJson(String key) {
         try {
+            System.out.println(key);
             String jsonTask = client.load(key);
             System.out.println(jsonTask);
-            List<Task> task = gson.fromJson(jsonTask, new TypeToken<List<Task>>() {
-            }.getType());
+            ArrayList<Task> task = new ArrayList<>();
+            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<SingleTask>>() {
+            }.getType()));
+            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Epic>>() {
+            }.getType()));
+            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Subtask>>() {
+            }.getType()));
 
-            String jsonHistory = client.load("history");
-            List<Integer> history = gson.fromJson(jsonHistory, new TypeToken<Integer>() {
+            for (int i =0;i<task.size();i++){
+                if(Objects.isNull(task.get(i))){
+                    task.remove(i);
+                    i=-1;
+                }
+            }
+
+            String jsonHistory = client.load("tasks/history");
+            List<Integer> history = gson.fromJson(jsonHistory, new TypeToken<List<Integer>>() {
             }.getType());
             System.out.println(history);
-            TaskData tasks = new TaskData(null,history);
+            TaskData tasks = new TaskData(task,history);
             return tasks;
         } catch (IOException | InterruptedException exception) {
             return null;
@@ -112,7 +114,7 @@ public class HttpTaskManager extends FileBackedTasksManager {
     }
 
     public static void main(String[] args) {
-        HttpTaskManager manager = new HttpTaskManager(Manager.getDefaultHistory(), "http://localhost:8078/");
+        HttpTaskManager manager = new HttpTaskManager("http://localhost:8078/");
         manager.client.register();
         SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.generateId(),
                 LocalDateTime.of(2000, 1, 1, 7, 0), Duration.ofHours(1));
@@ -126,8 +128,12 @@ public class HttpTaskManager extends FileBackedTasksManager {
         manager.setSingleTask(testSingleTask2);
         manager.setEpic(testEpic1);
         manager.setSubtask(testSubtask1);
+        manager.getTask(2);
         manager.getTask(1);
+        manager.removeTask(1);
         TaskData tasks = manager.loadFromJson("tasks");
+        System.out.println(tasks.getTasks());
         System.out.println(tasks.getHistory());
+
     }
 }
