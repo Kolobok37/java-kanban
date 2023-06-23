@@ -34,5 +34,6 @@ public interface TaskManager {
 
     int getId();
     TreeSet getPrioritizedTasks();
+
 }
 

@@ -6,14 +6,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-//import exception.ManagerSaveException;
-
 public class KVTaskClient {
     private final String url;
     private String authToken;
 
     public KVTaskClient(String url) {
-        this.url=url;
+        this.url="http://"+url+":8078/";
     }
 
     public void register() {
@@ -25,21 +23,18 @@ public class KVTaskClient {
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                System.out.println("Ошибка");
-                //throw new ManagerSaveException("Can't do save request, status code: " + response.statusCode());
+                throw new IOException("Can't do save request, status code: " + response.statusCode());
             }
             authToken = response.body();
             System.out.println(authToken);
+
         } catch (IOException | InterruptedException e) {
-            System.out.println("Ошибка");
-            //throw new ManagerSaveException("Can't do save request", e);
+            System.out.println("Произошла ошибка: "+ e.getMessage());
         }
     }
 
     public String  load(String key) throws IOException,InterruptedException{ // tasks, epics, subtasks , history
         HttpClient client = HttpClient.newHttpClient();
-        System.out.println(url + "load/"+key+"?API_TOKEN="+authToken);
-
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url + "load/"+key+"?API_TOKEN="+authToken))
                 .GET()
@@ -54,15 +49,6 @@ public class KVTaskClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url + "save/"+key+"?API_TOKEN="+authToken))
                 .POST(HttpRequest.BodyPublishers.ofString(value))
-                .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-    }
-
-    public void delete(String key) throws IOException,InterruptedException{
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url + "delete/"+key+"?API_TOKEN="+authToken))
-                .DELETE()
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
     }

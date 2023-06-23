@@ -29,8 +29,8 @@ public class Epic extends Task {
         this.duration=duration;
         this.startTime = startTime;
         this.subtaskId = subtaskId;
-this.status = searchStatus(status);
-    }
+        this.status=searchStatus(status);
+     }
 
     public Epic(String title, String description, int id) {
         super(title, description, id);
@@ -46,7 +46,7 @@ this.status = searchStatus(status);
 
 
     public void removeSubtask(Subtask deletedSubtask) {
-        subtaskId.remove(deletedSubtask.getId());
+        subtaskId.remove((Integer)deletedSubtask.getId());
         subtasks.remove(subtasks.get(deletedSubtask.getId()));
         calculateTime();
     }

@@ -69,4 +69,15 @@ public abstract class Task {
         }
         return statusEnum;
     }
+
+    public static TaskType searchType(String type){
+        switch (type){
+            case "Subtask":
+                return TaskType.Subtask;
+            case "Epic":
+                return TaskType.Epic;
+            default:
+                return TaskType.SingleTask;
+        }
+    }
 }

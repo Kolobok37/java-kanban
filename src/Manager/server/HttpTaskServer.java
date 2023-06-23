@@ -1,11 +1,15 @@
 package Manager.server;
 
+import Manager.Manager;
+import Manager.TaskManager.FileBackedTasksManager;
+import Tasks.*;
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.sun.net.httpserver.HttpExchange;
 
@@ -13,196 +17,196 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 public class HttpTaskServer {
-    public static final int PORT = 8078;
-    private final String apiToken;
+    public static final int PORT = 8080;
     private final HttpServer server;
-    private final Map<String, String> data = new HashMap<>();
+    private FileBackedTasksManager manager;
+    Gson gson;
 
-    public HttpTaskServer() throws IOException {
-        apiToken = generateApiToken();
+    public HttpTaskServer(File file) throws IOException {
+        manager = new FileBackedTasksManager(Manager.getDefaultHistory(),
+                file);
         server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
+        gson = GsonCreate.createGson();
 
-        server.createContext("/register", this::register);
-        server.createContext("/save", this::save);
-        server.createContext("/load", this::load);
-        //server.createContext("/delete", this::delete);
-        server.createContext("/tasks/task", this::task);
-        //server.createContext("/epic", this::epic);
-        //server.createContext("/subtask", this::subtask);
+        server.createContext("/tasks/singletask", this::getSingleTask);
+        server.createContext("/tasks/task", this::getTask);
+        server.createContext("/tasks/epic", this::getEpic);
+        server.createContext("/tasks/subtask", this::getSubtask);
+        server.createContext("/tasks/history", this::getHistory);
+        server.createContext("/tasks", this::getPrioritizedTasks);
 
     }
 
-    private void task(HttpExchange h) throws IOException {
-        // TODO Добавьте получение значения по ключу
+    private void getPrioritizedTasks(HttpExchange h) {
+        try {
+        System.out.println("\n/PrioritizedTasks");
+        if ("GET".equals(h.getRequestMethod())) {
+            String body = gson.toJson(manager.getPrioritizedTasks());
+            sendText(h, gson.toJson(body));
+        }
+    } catch (Exception e) {
+        System.out.println("Ошибка: " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        h.close();
+    }
+}
+
+    private void getHistory(HttpExchange h){
+    try {
+        System.out.println("\n/History");
+        if ("GET".equals(h.getRequestMethod())) {
+            String body = gson.toJson(manager.getHistoryMemory());
+            sendText(h, gson.toJson(body));
+        }
+    } catch (Exception e) {
+        System.out.println("Ошибка: " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        h.close();
+    }
+}
+
+    private void getSingleTask(HttpExchange h) {
+        try {
+            System.out.println("\n/SingelTask");
+            if ("GET".equals(h.getRequestMethod())) {
+                String body;
+                String rawQuery = h.getRequestURI().getRawQuery();
+                if (rawQuery.contains("id=")) {
+                    int id = Integer.parseInt(rawQuery.substring(rawQuery.indexOf("id=") + 3));
+                    if (!manager.getTask(id).getType().equals(TaskType.SingleTask)) {
+                        h.sendResponseHeaders(403, 0);
+                    }
+                    body = manager.getTask(id).toString();
+                } else {
+                    body = gson.toJson(manager.getAllTasks().stream().filter(task -> task.getType().
+                            equals(TaskType.SingleTask)).collect(Collectors.toList()).toString());
+                }
+                sendText(h, gson.toJson(body));
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            h.close();
+        }
+    }
+
+    private void getEpic(HttpExchange h) {
+        try {
+            System.out.println("\n/epic");
+            if ("GET".equals(h.getRequestMethod())) {
+                String body;
+                String rawQuery = h.getRequestURI().getRawQuery();
+                if (rawQuery.contains("id=")) {
+                    int id = Integer.parseInt(rawQuery.substring(rawQuery.indexOf("id=") + 3));
+                    if (!manager.getTask(id).getType().equals(TaskType.Epic)) {
+                        h.sendResponseHeaders(403, 0);
+                    }
+                    body = manager.getTask(id).toString();
+                } else {
+                    body = gson.toJson(manager.getAllTasks().stream().filter(task -> task.getType().
+                            equals(TaskType.Epic)).collect(Collectors.toList()).toString());
+                }
+                sendText(h, gson.toJson(body));
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            h.close();
+        }
+    }
+
+    private void getSubtask(HttpExchange h) throws IOException {
+        try {
+            System.out.println("\n/subtask");
+            if ("GET".equals(h.getRequestMethod())) {
+                String body;
+                String rawQuery = h.getRequestURI().getRawQuery();
+                if (rawQuery.contains("id=")) {
+                    int id = Integer.parseInt(rawQuery.substring(rawQuery.indexOf("id=") + 3));
+                    if (!manager.getTask(id).getType().equals(TaskType.Subtask)) {
+                        h.sendResponseHeaders(403, 0);
+                    }
+                    body = manager.getTask(id).toString();
+                } else {
+                    body = gson.toJson(manager.getAllTasks().stream().filter(task -> task.getType().
+                            equals(TaskType.Subtask)).collect(Collectors.toList()).toString());
+                }
+                sendText(h, gson.toJson(body));
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            h.close();
+        }
+    }
+
+    private void getTask(HttpExchange h) throws IOException {
         try {
             System.out.println("\n/task");
-            if (!hasAuth(h)) {
-                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
-                h.sendResponseHeaders(403, 0);
-                return;
-            }
             if ("GET".equals(h.getRequestMethod())) {
-                String key = h.getRequestURI().getPath().substring("/tasks/".length());
-                System.out.println(key);
-                System.out.println(key.isEmpty());
-                if (key.isEmpty()) {
-                    key="tasks/";
+                String body;
+                String rawQuery = h.getRequestURI().getRawQuery();
+                if (rawQuery.contains("id=")) {
+                    int id = Integer.parseInt(rawQuery.substring(rawQuery.indexOf("id=") + 3));
+                    System.out.println(id);
+                    body = manager.getTask(id).toString();
                 } else {
-                    key="tasks/" + key;
+                    body = manager.getAllTasks().toString();
                 }
-                String body = data.get(key);
-                System.out.println(key);
-                sendText(h, body);
+                sendText(h, gson.toJson(body));
             } else if ("POST".equals(h.getRequestMethod())) {
-                String key = h.getRequestURI().getPath().substring("/task/".length());
-                System.out.println(key);
-                if (key.isEmpty()) {
-                    key="/task/";
-                }
-                else{
-                    key="/task/" + key;
-                }
                 String value = readText(h);
                 if (value.isEmpty()) {
                     System.out.println("Value для сохранения пустой. value указывается в теле запроса");
                     h.sendResponseHeaders(400, 0);
                     return;
                 }
-                data.put(key, value);
-                System.out.println("Значение для ключа " + key + " успешно обновлено!");
+                if (value.contains("\"type\":\"SingleTask\"")) {
+                    SingleTask task = gson.fromJson(value, SingleTask.class);
+                    manager.setTask(task);
+                } else if (value.contains("\"type\":\"Epic\"")) {
+                    Epic task = gson.fromJson(value, Epic.class);
+                    manager.setTask(task);
+                } else if (value.contains("\"type\":\"Subtask\"")) {
+                    Subtask task = gson.fromJson(value, Subtask.class);
+                    manager.setTask(task);
+                }
                 h.sendResponseHeaders(200, 0);
+            } else if ("DELETE".equals(h.getRequestMethod())) {
+                String rawQuery = h.getRequestURI().getRawQuery();
+                if (rawQuery.contains("id=")) {
+                    int id = Integer.parseInt(rawQuery.substring(rawQuery.indexOf("id=") + 3));
+                    manager.removeTask(id);
+                } else {
+                    manager.clearAll();
+                }
+                System.out.println(manager.getAllTasks());
+            } else {
+                System.out.println("Ждём POST,GET или DELETE запрос, а получил: " + h.getRequestMethod());
+                h.sendResponseHeaders(405, 0);
             }
         } catch (Exception e) {
-            System.out.println("Ошибка");
+            System.out.println("Ошибка: " + e.getMessage());
         } finally {
-            System.out.println("файнали");
-
             h.close();
         }
     }
 
     public static void main(String[] args) throws IOException {
-        new HttpTaskServer().start();
-    }
-
-    private void load(HttpExchange h) throws IOException {
-        // TODO Добавьте получение значения по ключу
-        try {
-            System.out.println("\n/load");
-            if (!hasAuth(h)) {
-                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
-                h.sendResponseHeaders(403, 0);
-                return;
-            }
-            if ("GET".equals(h.getRequestMethod())) {
-                String key = h.getRequestURI().getPath().substring("/load/".length());
-                if (key.isEmpty()) {
-                    System.out.println("Key для сохранения пустой. key указывается в пути: /save/{key}");
-                    h.sendResponseHeaders(400, 0);
-                    return;
-                }
-                String body = data.get(key);
-                sendText(h, body);
-            } else {
-                System.out.println("/save ждёт GET-запрос, а получил: " + h.getRequestMethod());
-                h.sendResponseHeaders(405, 0);
-            }
-        } catch (Exception e) {
-        } finally {
-            h.close();
-        }
-    }
-
-    private void save(HttpExchange h) throws IOException {
-        try {
-            System.out.println("\n/save");
-            if (!hasAuth(h)) {
-                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
-                h.sendResponseHeaders(403, 0);
-                return;
-            }
-            if ("POST".equals(h.getRequestMethod())) {
-                String key = h.getRequestURI().getPath().substring("/save/".length());
-                if (key.isEmpty()) {
-                    System.out.println("Key для сохранения пустой. key указывается в пути: /save/{key}");
-                    h.sendResponseHeaders(400, 0);
-                    return;
-                }
-                String value = readText(h);
-                if (value.isEmpty()) {
-                    System.out.println("Value для сохранения пустой. value указывается в теле запроса");
-                    h.sendResponseHeaders(400, 0);
-                    return;
-                }
-                System.out.println(key);
-                data.put(key, value);
-                System.out.println("Значение для ключа " + key + " успешно обновлено!");
-                h.sendResponseHeaders(200, 0);
-            } else {
-                System.out.println("/save ждёт POST-запрос, а получил: " + h.getRequestMethod());
-                h.sendResponseHeaders(405, 0);
-            }
-        } finally {
-            h.close();
-        }
-    }
-
-    private void register(HttpExchange h) throws IOException {
-        try {
-            System.out.println("\n/register");
-            if ("GET".equals(h.getRequestMethod())) {
-                sendText(h, apiToken);
-            } else {
-                System.out.println("/register ждёт GET-запрос, а получил " + h.getRequestMethod());
-                h.sendResponseHeaders(405, 0);
-            }
-        } finally {
-            h.close();
-        }
-    }
-
-    private void delete(HttpExchange h) throws IOException {
-        try {
-            System.out.println("\n/delete");
-            if (!hasAuth(h)) {
-                System.out.println("Запрос неавторизован, нужен параметр в query API_TOKEN со значением апи-ключа");
-                h.sendResponseHeaders(403, 0);
-                return;
-            }
-            if ("DELETE".equals(h.getRequestMethod())) {
-                String key = h.getRequestURI().getPath().substring("/delete/".length());
-                if (key.isEmpty()) {
-                    System.out.println("Key для сохранения пустой. key указывается в пути: /delete/{key}");
-                    h.sendResponseHeaders(400, 0);
-                    return;
-                }
-                data.remove(key);
-                System.out.println("Значение для ключа " + key + " успешно обновлено!");
-                h.sendResponseHeaders(200, 0);
-            } else {
-                System.out.println("/save ждёт DELETE-запрос, а получил: " + h.getRequestMethod());
-                h.sendResponseHeaders(405, 0);
-            }
-        } finally {
-            h.close();
-        }
+        new HttpTaskServer(new File("TaskManager")).start();
     }
 
     public void start() {
         System.out.println("Запускаем сервер на порту " + PORT);
         System.out.println("Открой в браузере http://localhost:" + PORT + "/");
-        System.out.println("API_TOKEN: " + apiToken);
         server.start();
     }
 
-    private String generateApiToken() {
-        return "" + System.currentTimeMillis();
-    }
-
-    protected boolean hasAuth(HttpExchange h) {
-        String rawQuery = h.getRequestURI().getRawQuery();
-        return rawQuery != null && (rawQuery.contains("API_TOKEN=" + apiToken) || rawQuery.contains("API_TOKEN=DEBUG"));
-    }
 
     protected String readText(HttpExchange h) throws IOException {
         return new String(h.getRequestBody().readAllBytes(), UTF_8);

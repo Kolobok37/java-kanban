@@ -2,17 +2,22 @@ package Manager.TaskManager;
 
 import Manager.Manager;
 import Manager.TaskManager.JsonAdapter.*;
+import Manager.server.GsonCreate;
+import Manager.server.HttpTaskServer;
+import Manager.server.KVServer;
 import Manager.server.KVTaskClient;
 import Tasks.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 public class HttpTaskManager extends InMemoryTaskManager {
@@ -20,101 +25,18 @@ public class HttpTaskManager extends InMemoryTaskManager {
     private String url;
     private KVTaskClient client;
 
-    public HttpTaskManager(String url) {// "http://localhost:8078/"
+    public HttpTaskManager(String url) throws IOException {// "http://localhost:8078/"
         super(Manager.getDefaultHistory());
         this.url = url;
         client = new KVTaskClient(url);
-        gson = new GsonBuilder().registerTypeAdapter(SingleTask.class, new TaskSerializer()).
-                registerTypeAdapter(Epic.class, new TaskSerializer()).
-                registerTypeAdapter(Subtask.class, new TaskSerializer()).
-                registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer()).
-                registerTypeAdapter(Duration.class, new DurationSerialize()).
-                registerTypeAdapter(SingleTask.class, new SingleTaskDeserializer()).
-                registerTypeAdapter(Epic.class, new EpicDeserializer()).
-                registerTypeAdapter(Subtask.class, new SubtaskDeserializer()).
-                registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer()).
-                registerTypeAdapter(Duration.class, new DurationDeserializer()).
-                create();
+        gson = GsonCreate.createGson();
     }
 
-    @Override
-    public Task getTask(int id) {
-        Task task = super.getTask(id);
-        save("tasks/history", gson.toJson(history.getHistoryId()));
-        return task;
-    }
-
-    @Override
-    public void setEpic(Epic newEpic) {
-        super.setEpic(newEpic);
-        save("tasks/epic", gson.toJson(epicList.values()));
-        save("tasks",gson.toJson(getAllTasks()));
-    }
-
-
-    @Override
-    public void setSingleTask(SingleTask newSingleTask) {
-        super.setSingleTask(newSingleTask);
-        save("tasks/task", gson.toJson(taskList.values()));
-        save("tasks",gson.toJson(getAllTasks()));
-    }
-
-    @Override
-    public void setSubtask(Subtask newSubtask) {
-        super.setSubtask(newSubtask);
-        save("tasks/subtask", gson.toJson(subtaskList.values()));
-        save("tasks/epic", gson.toJson(epicList.values()));
-        save("tasks",gson.toJson(getAllTasks()));
-    }
-
-    @Override
-    public void removeTask(int id) {
-        super.removeTask(id);
-        save("tasks",gson.toJson(getAllTasks()));
-    }
-
-    private void save(String key, String value) { // делавет сохранение через Client
-        try {
-            client.put(key, value);
-        } catch (IOException | InterruptedException e) {
-
-        }
-    }
-
-
-    public TaskData loadFromJson(String key) {
-        try {
-            System.out.println(key);
-            String jsonTask = client.load(key);
-            System.out.println(jsonTask);
-            ArrayList<Task> task = new ArrayList<>();
-            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<SingleTask>>() {
-            }.getType()));
-            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Epic>>() {
-            }.getType()));
-            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Subtask>>() {
-            }.getType()));
-
-            for (int i =0;i<task.size();i++){
-                if(Objects.isNull(task.get(i))){
-                    task.remove(i);
-                    i=-1;
-                }
-            }
-
-            String jsonHistory = client.load("tasks/history");
-            List<Integer> history = gson.fromJson(jsonHistory, new TypeToken<List<Integer>>() {
-            }.getType());
-            System.out.println(history);
-            TaskData tasks = new TaskData(task,history);
-            return tasks;
-        } catch (IOException | InterruptedException exception) {
-            return null;
-        }
-    }
-
-    public static void main(String[] args) {
-        HttpTaskManager manager = new HttpTaskManager("http://localhost:8078/");
+    public static void main(String[] args) throws IOException {
+        KVServer kvServer = new KVServer();
+        HttpTaskManager manager =new HttpTaskManager("localhost");
+        HttpTaskServer server = new HttpTaskServer(new File("TaskManager"));
+        kvServer.start();
         manager.client.register();
         SingleTask testSingleTask1 = new SingleTask("Мыть пол", "Помыть до 21:00", manager.generateId(),
                 LocalDateTime.of(2000, 1, 1, 7, 0), Duration.ofHours(1));
@@ -130,10 +52,58 @@ public class HttpTaskManager extends InMemoryTaskManager {
         manager.setSubtask(testSubtask1);
         manager.getTask(2);
         manager.getTask(1);
-        manager.removeTask(1);
-        TaskData tasks = manager.loadFromJson("tasks");
-        System.out.println(tasks.getTasks());
-        System.out.println(tasks.getHistory());
+        manager.save("manager/task", manager.gson.toJson(manager.getManagerToTaskData(manager).getTasks()));
+        manager.save("manager/history", manager.gson.toJson(manager.getManagerToTaskData(manager).getHistory()));
 
+        HttpTaskManager manager2 = manager.loadFromJson("manager");
+        System.out.println(manager2.getAllTasks()+"1");
+
+
+    }
+
+private TaskData getManagerToTaskData(InMemoryTaskManager manager){
+        TaskData data = new TaskData(manager.getAllTasks(),manager.getHistoryMemory().stream().
+                map(task -> task.getId()).collect(Collectors.toList()));
+        return data;
+}
+    private void save(String key, String value) { // делавет сохранение через Client
+        try {
+            client.put(key, value);
+        } catch (IOException | InterruptedException e) {
+
+        }
+    }
+
+
+    public HttpTaskManager loadFromJson(String key) {
+        try {
+            HttpTaskManager manager = new HttpTaskManager("localhost");
+            String jsonTask = client.load(key+"/task");
+            ArrayList<Task> task = new ArrayList<>();
+            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<SingleTask>>() {
+            }.getType()));
+            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Epic>>() {
+            }.getType()));
+            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Subtask>>() {
+            }.getType()));
+            for (int i =0;i<task.size();i++){
+                if(Objects.isNull(task.get(i))){
+                    task.remove(i);
+                    i=-1;
+                }
+            }
+            String jsonHistory = client.load(key+"/history");
+            List<Integer> history = gson.fromJson(jsonHistory, new TypeToken<List<Integer>>() {
+            }.getType());
+            System.out.println(history);
+            for(Task t:task){
+                manager.setTask(t);
+            }
+            history.stream().peek(taskId -> manager.getTask(taskId));
+            return manager;
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+            return null;
+        }
     }
 }

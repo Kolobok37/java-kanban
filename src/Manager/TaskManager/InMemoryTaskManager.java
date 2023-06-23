@@ -1,9 +1,12 @@
 package Manager.TaskManager;
 
+import Manager.History.HistoryManager;
 import Manager.History.InMemoryHistoryManager;
 import Tasks.*;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,7 +28,6 @@ public class InMemoryTaskManager implements TaskManager {
     public LinkedList<Task> getHistoryMemory() {
         return history.getHistory();
     }
-
     public int getId() {
         return id;
     }
@@ -75,29 +77,31 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void setSingleTask(SingleTask newSingleTask){
+    public void setSingleTask(SingleTask newSingleTask) {
         try {
-            checkTimeAtAdding(newSingleTask);
+            if (!taskList.containsKey(newSingleTask.getId())) {
+                checkTimeAtAdding(newSingleTask);
+            }
             taskList.put(newSingleTask.getId(), newSingleTask);
-        } catch(RuntimeException e) {
+        } catch (RuntimeException e) {
             System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");
         }
     }
 
     @Override
-    public void setEpic(Epic newEpic){
+    public void setEpic(Epic newEpic) {
         epicList.put(newEpic.getId(), newEpic);
     }
 
     @Override
-    public void setSubtask(Subtask newSubtask){
+    public void setSubtask(Subtask newSubtask) {
         try {
-            checkTimeAtAdding(newSubtask);
             subtaskList.put(newSubtask.getId(), newSubtask);
             epicList.get(newSubtask.getIdEpic()).addSubtask(newSubtask);
             //epicList.get(newSubtask.getIdEpic()).addSubtaskId(newSubtask.getId());
             epicList.get(newSubtask.getIdEpic()).setStatus();
         } catch (RuntimeException e) {
+            e.printStackTrace();
             System.out.println("Обновлённая подзадача не правильно задана или её нет в списке задач!");
         }
     }
@@ -180,28 +184,71 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public void checkTimeAtAdding(Task taskAdding) throws RuntimeException {
-        if(taskAdding.getStartTime()==null){
+        if (taskAdding.getStartTime() == null) {
             return;
         }
         for (Task task : getAllTasks()) {
-            if(task.getStartTime()==null){
+            if (task.getStartTime() == null) {
                 continue;
             }
-            if (!(taskAdding.getStartTime().isBefore(task.getStartTime())&&taskAdding.getStartTime().plus(taskAdding.getDuration()).
-                    isBefore(task.getStartTime())||
+            if (!(taskAdding.getStartTime().isBefore(task.getStartTime()) && taskAdding.getStartTime().plus(taskAdding.getDuration()).
+                    isBefore(task.getStartTime()) ||
                     taskAdding.getStartTime().isAfter(task.getStartTime().plus(task.getDuration())))) {
                 throw new RuntimeException("Ошибка задачи времени");
             }
         }
     }
-    static public TaskStatus getTaskStatusFromString(String status){
-        switch (status){
+
+    static public TaskStatus getTaskStatusFromString(String status) {
+        switch (status) {
             case "IN_PROGRESS":
                 return TaskStatus.IN_PROGRESS;
             case "DONE":
                 return TaskStatus.DONE;
             default:
                 return TaskStatus.NEW;
+        }
+    }
+
+    public Task creatureTaskFromStringArray(String[] strTask) {
+        Task task = null;
+        switch (Task.searchType(strTask[1])) {
+            case SingleTask: {
+                task = new SingleTask(strTask[2], strTask[4], Integer.parseInt(strTask[0]),
+                        LocalDateTime.parse(strTask[5]), Duration.parse(strTask[6]), strTask[3]);
+                break;
+            }
+            case Epic: {
+                task = new Epic(strTask[2], strTask[4], Integer.parseInt(strTask[0]),
+                        LocalDateTime.parse(strTask[5]), Duration.parse(strTask[6]),
+                        Arrays.stream(strTask[3].substring(1, (strTask[3].length() - 1)).split(",")).
+                                map(t -> Integer.parseInt(t)).collect(Collectors.toList()),
+                        strTask[3]);
+                break;
+            }
+            case Subtask: {
+                task = new Subtask(strTask[2], strTask[4], Integer.parseInt(strTask[0]), Integer.parseInt(strTask[5]),
+                        LocalDateTime.parse(strTask[6]), Duration.parse(strTask[7]), strTask[3]);
+                break;
+            }
+        }
+        return task;
+    }
+
+    public void setTask(Task task) {
+        switch (task.getType()) {
+            case SingleTask: {
+                setSingleTask((SingleTask) task);
+                break;
+            }
+            case Epic: {
+                setEpic((Epic) task);
+                break;
+            }
+            case Subtask: {
+                setSubtask((Subtask) task);
+                break;
+            }
         }
     }
 }
