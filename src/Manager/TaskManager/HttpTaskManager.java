@@ -1,7 +1,6 @@
 package Manager.TaskManager;
 
 import Manager.Manager;
-import Manager.TaskManager.JsonAdapter.*;
 import Manager.server.GsonCreate;
 import Manager.server.HttpTaskServer;
 import Manager.server.KVServer;
@@ -9,7 +8,6 @@ import Manager.server.KVTaskClient;
 import Tasks.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -20,13 +18,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-public class HttpTaskManager extends InMemoryTaskManager {
+public class HttpTaskManager extends FileBackedTasksManager {
     Gson gson;
     private String url;
     private KVTaskClient client;
 
     public HttpTaskManager(String url) throws IOException {// "http://localhost:8078/"
-        super(Manager.getDefaultHistory());
+        super(Manager.getDefaultHistory(), new File("TaskManager"));
         this.url = url;
         client = new KVTaskClient(url);
         gson = GsonCreate.createGson();
@@ -34,7 +32,7 @@ public class HttpTaskManager extends InMemoryTaskManager {
 
     public static void main(String[] args) throws IOException {
         KVServer kvServer = new KVServer();
-        HttpTaskManager manager =new HttpTaskManager("localhost");
+        HttpTaskManager manager = new HttpTaskManager("localhost");
         HttpTaskServer server = new HttpTaskServer(new File("TaskManager"));
         kvServer.start();
         manager.client.register();
@@ -56,16 +54,20 @@ public class HttpTaskManager extends InMemoryTaskManager {
         manager.save("manager/history", manager.gson.toJson(manager.getManagerToTaskData(manager).getHistory()));
 
         HttpTaskManager manager2 = manager.loadFromJson("manager");
-        System.out.println(manager2.getAllTasks()+"1");
+        System.out.println(manager2.getAllTasks());
+        System.out.println(manager2.getHistoryMemory());
 
 
     }
 
-private TaskData getManagerToTaskData(InMemoryTaskManager manager){
-        TaskData data = new TaskData(manager.getAllTasks(),manager.getHistoryMemory().stream().
+
+
+    private TaskData getManagerToTaskData(InMemoryTaskManager manager) {
+        TaskData data = new TaskData(manager.getAllTasks(), manager.getHistoryMemory().stream().
                 map(task -> task.getId()).collect(Collectors.toList()));
         return data;
-}
+    }
+
     private void save(String key, String value) { // делавет сохранение через Client
         try {
             client.put(key, value);
@@ -78,28 +80,29 @@ private TaskData getManagerToTaskData(InMemoryTaskManager manager){
     public HttpTaskManager loadFromJson(String key) {
         try {
             HttpTaskManager manager = new HttpTaskManager("localhost");
-            String jsonTask = client.load(key+"/task");
+            String jsonTask = client.load(key + "/task");
             ArrayList<Task> task = new ArrayList<>();
-            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<SingleTask>>() {
+            task.addAll(gson.fromJson(jsonTask, new TypeToken<ArrayList<SingleTask>>() {
             }.getType()));
-            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Epic>>() {
+            task.addAll(gson.fromJson(jsonTask, new TypeToken<ArrayList<Epic>>() {
             }.getType()));
-            task.addAll(gson.fromJson(jsonTask,new TypeToken<ArrayList<Subtask>>() {
+            task.addAll(gson.fromJson(jsonTask, new TypeToken<ArrayList<Subtask>>() {
             }.getType()));
-            for (int i =0;i<task.size();i++){
-                if(Objects.isNull(task.get(i))){
+            for (int i = 0; i < task.size(); i++) {
+                if (Objects.isNull(task.get(i))) {
                     task.remove(i);
-                    i=-1;
+                    i = -1;
                 }
             }
-            String jsonHistory = client.load(key+"/history");
+            String jsonHistory = client.load(key + "/history");
             List<Integer> history = gson.fromJson(jsonHistory, new TypeToken<List<Integer>>() {
             }.getType());
-            System.out.println(history);
-            for(Task t:task){
+            for (Task t : task) {
                 manager.setTask(t);
             }
-            history.stream().peek(taskId -> manager.getTask(taskId));
+            for (int taskId:history){
+                manager.getTask(taskId);
+            }
             return manager;
         } catch (IOException | InterruptedException e) {
             System.out.println("Ошибка: " + e.getMessage());
